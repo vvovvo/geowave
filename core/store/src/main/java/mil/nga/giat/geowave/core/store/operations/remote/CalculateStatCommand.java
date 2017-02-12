@@ -28,7 +28,7 @@ import mil.nga.giat.geowave.core.store.operations.remote.options.StatsCommandLin
 import mil.nga.giat.geowave.core.store.query.Query;
 import mil.nga.giat.geowave.core.store.query.QueryOptions;
 
-@GeowaveOperation(name = "calcstat", parentOperation = RemoteSection.class)
+@GeowaveOperation(name = "calcstat", parentOperation = RemoteSection.class, restEnabled = GeowaveOperation.RestEnabledType.POST)
 @Parameters(commandDescription = "Calculate a specific statistic in the remote store, given adapter ID and statistic ID")
 /**
  * This class calculates the statistic(s) in the given store and replaces the
@@ -51,18 +51,7 @@ public class CalculateStatCommand extends
 	@Override
 	public void execute(
 			OperationParams params ) {
-
-		// Ensure we have all the required arguments
-		if (parameters.size() != 3) {
-			throw new ParameterException(
-					"Requires arguments: <store name> <adapterId> <statId>");
-		}
-
-		statId = parameters.get(2);
-
-		super.run(
-				params,
-				parameters);
+		computeResults(params);
 	}
 
 	protected boolean performStatsCommand(
@@ -142,5 +131,22 @@ public class CalculateStatCommand extends
 		this.parameters.add(storeName);
 		this.parameters.add(adapterId);
 		this.parameters.add(statId);
+	}
+
+	@Override
+	protected Void computeResults(
+			OperationParams params ) {
+		// Ensure we have all the required arguments
+		if (parameters.size() != 3) {
+			throw new ParameterException(
+					"Requires arguments: <store name> <adapterId> <statId>");
+		}
+
+		statId = parameters.get(2);
+
+		super.run(
+				params,
+				parameters);
+		return null;
 	}
 }

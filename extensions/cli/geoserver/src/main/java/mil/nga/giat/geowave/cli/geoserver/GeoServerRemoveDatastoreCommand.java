@@ -9,16 +9,19 @@ import javax.ws.rs.core.Response.Status;
 
 import mil.nga.giat.geowave.core.cli.annotations.GeowaveOperation;
 import mil.nga.giat.geowave.core.cli.api.Command;
+import mil.nga.giat.geowave.core.cli.api.DefaultOperation;
 import mil.nga.giat.geowave.core.cli.api.OperationParams;
 import mil.nga.giat.geowave.core.cli.operations.config.options.ConfigOptions;
 
+import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
 
-@GeowaveOperation(name = "rmds", parentOperation = GeoServerSection.class)
+@GeowaveOperation(name = "rmds", parentOperation = GeoServerSection.class, restEnabled = GeowaveOperation.RestEnabledType.POST)
 @Parameters(commandDescription = "Remove GeoServer DataStore")
-public class GeoServerRemoveDatastoreCommand implements
+public class GeoServerRemoveDatastoreCommand extends
+		DefaultOperation<String> implements
 		Command
 {
 	private GeoServerRestClient geoserverClient = null;
@@ -62,6 +65,14 @@ public class GeoServerRemoveDatastoreCommand implements
 					"Requires argument: <datastore name>");
 		}
 
+		JCommander.getConsole().println(
+				computeResults(params));
+	}
+
+	@Override
+	protected String computeResults(
+			OperationParams params )
+			throws Exception {
 		if (workspace == null || workspace.isEmpty()) {
 			workspace = geoserverClient.getConfig().getWorkspace();
 		}
@@ -73,12 +84,9 @@ public class GeoServerRemoveDatastoreCommand implements
 				datastoreName);
 
 		if (deleteStoreResponse.getStatus() == Status.OK.getStatusCode()) {
-			System.out.println("Delete store '" + datastoreName + "' from workspace '" + workspace
-					+ "' on GeoServer: OK");
+			return "Delete store '" + datastoreName + "' from workspace '" + workspace + "' on GeoServer: OK";
 		}
-		else {
-			System.err.println("Error deleting store '" + datastoreName + "' from workspace '" + workspace
-					+ "' on GeoServer; code = " + deleteStoreResponse.getStatus());
-		}
+		return "Error deleting store '" + datastoreName + "' from workspace '" + workspace + "' on GeoServer; code = "
+				+ deleteStoreResponse.getStatus();
 	}
 }

@@ -9,17 +9,20 @@ import javax.ws.rs.core.Response.Status;
 
 import mil.nga.giat.geowave.core.cli.annotations.GeowaveOperation;
 import mil.nga.giat.geowave.core.cli.api.Command;
+import mil.nga.giat.geowave.core.cli.api.DefaultOperation;
 import mil.nga.giat.geowave.core.cli.api.OperationParams;
 import mil.nga.giat.geowave.core.cli.operations.config.options.ConfigOptions;
 import net.sf.json.JSONObject;
 
+import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
 
-@GeowaveOperation(name = "rmcv", parentOperation = GeoServerSection.class)
+@GeowaveOperation(name = "rmcv", parentOperation = GeoServerSection.class, restEnabled = GeowaveOperation.RestEnabledType.POST)
 @Parameters(commandDescription = "Remove a GeoServer coverage")
-public class GeoServerRemoveCoverageCommand implements
+public class GeoServerRemoveCoverageCommand extends
+		DefaultOperation<String> implements
 		Command
 {
 	private GeoServerRestClient geoserverClient = null;
@@ -69,6 +72,14 @@ public class GeoServerRemoveCoverageCommand implements
 					"Requires argument: <coverage name>");
 		}
 
+		JCommander.getConsole().println(
+				computeResults(params));
+	}
+
+	@Override
+	protected String computeResults(
+			OperationParams params )
+			throws Exception {
 		if (workspace == null || workspace.isEmpty()) {
 			workspace = geoserverClient.getConfig().getWorkspace();
 		}
@@ -81,11 +92,8 @@ public class GeoServerRemoveCoverageCommand implements
 				cvgName);
 
 		if (getCvgResponse.getStatus() == Status.OK.getStatusCode()) {
-			System.out.println("\nRemove GeoServer coverage '" + cvgName + "': OK");
+			return "\nRemove GeoServer coverage '" + cvgName + "': OK";
 		}
-		else {
-			System.err.println("Error removing GeoServer coverage " + cvgName + "; code = "
-					+ getCvgResponse.getStatus());
-		}
+		return "Error removing GeoServer coverage " + cvgName + "; code = " + getCvgResponse.getStatus();
 	}
 }

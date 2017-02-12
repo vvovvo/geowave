@@ -9,16 +9,19 @@ import javax.ws.rs.core.Response.Status;
 
 import mil.nga.giat.geowave.core.cli.annotations.GeowaveOperation;
 import mil.nga.giat.geowave.core.cli.api.Command;
+import mil.nga.giat.geowave.core.cli.api.DefaultOperation;
 import mil.nga.giat.geowave.core.cli.api.OperationParams;
 import mil.nga.giat.geowave.core.cli.operations.config.options.ConfigOptions;
 
+import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
 
-@GeowaveOperation(name = "rmcs", parentOperation = GeoServerSection.class)
+@GeowaveOperation(name = "rmcs", parentOperation = GeoServerSection.class, restEnabled = GeowaveOperation.RestEnabledType.POST)
 @Parameters(commandDescription = "Remove GeoServer Coverage Store")
-public class GeoServerRemoveCoverageStoreCommand implements
+public class GeoServerRemoveCoverageStoreCommand extends
+		DefaultOperation<String> implements
 		Command
 {
 	private GeoServerRestClient geoserverClient = null;
@@ -62,6 +65,14 @@ public class GeoServerRemoveCoverageStoreCommand implements
 					"Requires argument: <coverage store name>");
 		}
 
+		JCommander.getConsole().println(
+				computeResults(params));
+	}
+
+	@Override
+	protected String computeResults(
+			OperationParams params )
+			throws Exception {
 		if (workspace == null || workspace.isEmpty()) {
 			workspace = geoserverClient.getConfig().getWorkspace();
 		}
@@ -73,12 +84,9 @@ public class GeoServerRemoveCoverageStoreCommand implements
 				cvgstoreName);
 
 		if (deleteCvgStoreResponse.getStatus() == Status.OK.getStatusCode()) {
-			System.out.println("Delete store '" + cvgstoreName + "' from workspace '" + workspace
-					+ "' on GeoServer: OK");
+			return "Delete store '" + cvgstoreName + "' from workspace '" + workspace + "' on GeoServer: OK";
 		}
-		else {
-			System.err.println("Error deleting store '" + cvgstoreName + "' from workspace '" + workspace
-					+ "' on GeoServer; code = " + deleteCvgStoreResponse.getStatus());
-		}
+		return "Error deleting store '" + cvgstoreName + "' from workspace '" + workspace + "' on GeoServer; code = "
+				+ deleteCvgStoreResponse.getStatus();
 	}
 }

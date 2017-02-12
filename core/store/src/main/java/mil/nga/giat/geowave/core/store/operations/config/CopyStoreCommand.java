@@ -5,25 +5,42 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.restlet.data.Form;
+import org.restlet.representation.Representation;
+import org.restlet.data.Status;
+import org.restlet.resource.Post;
+import org.restlet.resource.ServerResource;
+
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
 
 import mil.nga.giat.geowave.core.cli.annotations.GeowaveOperation;
+import mil.nga.giat.geowave.core.cli.annotations.RestParameters;
 import mil.nga.giat.geowave.core.cli.api.Command;
+import mil.nga.giat.geowave.core.cli.api.DefaultOperation;
 import mil.nga.giat.geowave.core.cli.api.OperationParams;
 import mil.nga.giat.geowave.core.cli.operations.config.ConfigSection;
 import mil.nga.giat.geowave.core.cli.operations.config.options.ConfigOptions;
+import mil.nga.giat.geowave.core.cli.parser.ManualOperationParams;
+import mil.nga.giat.geowave.core.store.GeoWaveStoreFinder;
+import mil.nga.giat.geowave.core.store.memory.MemoryStoreFactoryFamily;
 import mil.nga.giat.geowave.core.store.operations.remote.options.DataStorePluginOptions;
+import static mil.nga.giat.geowave.core.cli.annotations.GeowaveOperation.RestEnabledType.*;
 
-@GeowaveOperation(name = "cpstore", parentOperation = ConfigSection.class)
+@GeowaveOperation(name = "cpstore", parentOperation = ConfigSection.class, restEnabled = POST)
 @Parameters(commandDescription = "Copy and modify existing store configuration")
-public class CopyStoreCommand implements
+public class CopyStoreCommand extends
+		DefaultOperation<Void> implements
 		Command
 {
 
 	@Parameter(description = "<name> <new name>")
+	@RestParameters(names = {
+		"name",
+		"newname"
+	})
 	private List<String> parameters = new ArrayList<String>();
 
 	@Parameter(names = {
@@ -67,6 +84,12 @@ public class CopyStoreCommand implements
 	@Override
 	public void execute(
 			OperationParams params ) {
+		computeResults(params);
+	}
+
+	@Override
+	public Void computeResults(
+			OperationParams params ) {
 
 		if (parameters.size() < 2) {
 			throw new ParameterException(
@@ -102,6 +125,8 @@ public class CopyStoreCommand implements
 		ConfigOptions.writeProperties(
 				configFile,
 				existingProps);
+
+		return null;
 
 	}
 

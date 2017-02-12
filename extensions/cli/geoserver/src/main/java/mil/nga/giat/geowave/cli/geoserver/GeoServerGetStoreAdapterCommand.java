@@ -6,16 +6,19 @@ import java.util.List;
 
 import mil.nga.giat.geowave.core.cli.annotations.GeowaveOperation;
 import mil.nga.giat.geowave.core.cli.api.Command;
+import mil.nga.giat.geowave.core.cli.api.DefaultOperation;
 import mil.nga.giat.geowave.core.cli.api.OperationParams;
 import mil.nga.giat.geowave.core.cli.operations.config.options.ConfigOptions;
 
+import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
 
-@GeowaveOperation(name = "getsa", parentOperation = GeoServerSection.class)
+@GeowaveOperation(name = "getsa", parentOperation = GeoServerSection.class, restEnabled = GeowaveOperation.RestEnabledType.POST)
 @Parameters(commandDescription = "Get GeoWave store adapters")
-public class GeoServerGetStoreAdapterCommand implements
+public class GeoServerGetStoreAdapterCommand extends
+		DefaultOperation<List<String>> implements
 		Command
 {
 	private GeoServerRestClient geoserverClient = null;
@@ -53,14 +56,22 @@ public class GeoServerGetStoreAdapterCommand implements
 					"Requires argument: <store name>");
 		}
 
+		JCommander.getConsole().println(
+				"Store " + storeName + " has these adapters:");
+		for (String adapterId : computeResults(params)) {
+			JCommander.getConsole().println(
+					adapterId);
+		}
+	}
+
+	@Override
+	protected List<String> computeResults(
+			OperationParams params )
+			throws Exception {
 		storeName = parameters.get(0);
 		ArrayList<String> adapterList = geoserverClient.getStoreAdapters(
 				storeName,
 				null);
-
-		System.out.println("Store " + storeName + " has these adapters:");
-		for (String adapterId : adapterList) {
-			System.out.println(adapterId);
-		}
+		return adapterList;
 	}
 }

@@ -9,17 +9,20 @@ import javax.ws.rs.core.Response.Status;
 
 import mil.nga.giat.geowave.core.cli.annotations.GeowaveOperation;
 import mil.nga.giat.geowave.core.cli.api.Command;
+import mil.nga.giat.geowave.core.cli.api.DefaultOperation;
 import mil.nga.giat.geowave.core.cli.api.OperationParams;
 import mil.nga.giat.geowave.core.cli.operations.config.options.ConfigOptions;
 import net.sf.json.JSONObject;
 
+import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
 
-@GeowaveOperation(name = "addcv", parentOperation = GeoServerSection.class)
+@GeowaveOperation(name = "addcv", parentOperation = GeoServerSection.class, restEnabled = GeowaveOperation.RestEnabledType.POST)
 @Parameters(commandDescription = "Add a GeoServer coverage")
-public class GeoServerAddCoverageCommand implements
+public class GeoServerAddCoverageCommand extends
+		DefaultOperation<String> implements
 		Command
 {
 	private GeoServerRestClient geoserverClient = null;
@@ -64,6 +67,13 @@ public class GeoServerAddCoverageCommand implements
 	public void execute(
 			OperationParams params )
 			throws Exception {
+		JCommander.getConsole().println(
+				computeResults(params));
+	}
+
+	@Override
+	protected String computeResults(
+			OperationParams params ) {
 		if (parameters.size() != 1) {
 			throw new ParameterException(
 					"Requires argument: <coverage name>");
@@ -81,12 +91,8 @@ public class GeoServerAddCoverageCommand implements
 				cvgName);
 
 		if (addLayerResponse.getStatus() == Status.OK.getStatusCode()) {
-			System.out.println("Add coverage '" + cvgName + "' to '" + workspace + "/" + cvgstore
-					+ "' on GeoServer: OK");
+			return "Add coverage '" + cvgName + "' to '" + workspace + "/" + cvgstore + "' on GeoServer: OK";
 		}
-		else {
-			System.err.println("Error adding GeoServer coverage " + cvgName + "; code = "
-					+ addLayerResponse.getStatus());
-		}
+		return "Error adding GeoServer coverage " + cvgName + "; code = " + addLayerResponse.getStatus();
 	}
 }

@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.apache.hadoop.util.ToolRunner;
 
+import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
@@ -23,10 +24,10 @@ import mil.nga.giat.geowave.core.cli.operations.config.options.ConfigOptions;
 import mil.nga.giat.geowave.core.store.operations.remote.options.DataStorePluginOptions;
 import mil.nga.giat.geowave.core.store.operations.remote.options.StoreLoader;
 
-@GeowaveOperation(name = "ingest", parentOperation = OSMSection.class)
+@GeowaveOperation(name = "ingest", parentOperation = OSMSection.class, restEnabled = GeowaveOperation.RestEnabledType.POST)
 @Parameters(commandDescription = "Ingest and convert OSM data from HDFS to GeoWave")
 public class IngestOSMToGeoWaveCommand extends
-		DefaultOperation implements
+		DefaultOperation<List<String>> implements
 		Command
 {
 
@@ -49,6 +50,94 @@ public class IngestOSMToGeoWaveCommand extends
 					"Requires arguments: <hdfs host:port> <path to base directory to read from> <store name>");
 		}
 
+		for (String string : computeResults(params)) {
+			JCommander.getConsole().println(
+					string);
+		}
+	}
+
+	private List<String> ingestData()
+			throws Exception {
+
+		OSMRunner runner = new OSMRunner(
+				ingestOptions,
+				inputStoreOptions);
+
+		int res = ToolRunner.run(
+				runner,
+				new String[] {});
+		if (res != 0) {
+			throw new RuntimeException(
+					"OSMRunner failed: " + res);
+		}
+
+		List<String> output = new ArrayList<>();
+		output.add("finished ingest");
+		output.add("**************************************************");
+		return output;
+	}
+
+	private List<String> convertData()
+			throws Exception {
+
+		FeatureDefinitionSet.initialize(new OSMIngestCommandArgs().getMappingContents());
+
+		OSMConversionRunner runner = new OSMConversionRunner(
+				ingestOptions,
+				inputStoreOptions);
+
+		int res = ToolRunner.run(
+				runner,
+				new String[] {});
+		if (res != 0) {
+			throw new RuntimeException(
+					"OSMConversionRunner failed: " + res);
+		}
+
+		List<String> output = new ArrayList<>();
+		output.add("finished conversion");
+		output.add("**************************************************");
+		output.add("**************************************************");
+		output.add("**************************************************");
+		return output;
+	}
+
+	public List<String> getParameters() {
+		return parameters;
+	}
+
+	public void setParameters(
+			String hdfsHostPort,
+			String hdfsPath,
+			String storeName ) {
+		this.parameters = new ArrayList<String>();
+		this.parameters.add(hdfsHostPort);
+		this.parameters.add(hdfsPath);
+		this.parameters.add(storeName);
+	}
+
+	public OSMIngestCommandArgs getIngestOptions() {
+		return ingestOptions;
+	}
+
+	public void setIngestOptions(
+			OSMIngestCommandArgs ingestOptions ) {
+		this.ingestOptions = ingestOptions;
+	}
+
+	public DataStorePluginOptions getInputStoreOptions() {
+		return inputStoreOptions;
+	}
+
+	public void setInputStoreOptions(
+			DataStorePluginOptions inputStoreOptions ) {
+		this.inputStoreOptions = inputStoreOptions;
+	}
+
+	@Override
+	protected List<String> computeResults(
+			OperationParams params )
+			throws Exception {
 		String hdfsHostPort = parameters.get(0);
 		String basePath = parameters.get(1);
 		String inputStoreName = parameters.get(2);
@@ -95,84 +184,14 @@ public class IngestOSMToGeoWaveCommand extends
 		// This is needed by a method in OSMIngsetCommandArgs.
 		ingestOptions.setOsmNamespace(inputStoreOptions.getGeowaveNamespace());
 
+		List<String> outputs = new ArrayList<>();
+
 		// Ingest the data.
-		ingestData();
+		outputs.addAll(ingestData());
 
 		// Convert the data
-		convertData();
-	}
+		outputs.addAll(convertData());
 
-	private void ingestData()
-			throws Exception {
-
-		OSMRunner runner = new OSMRunner(
-				ingestOptions,
-				inputStoreOptions);
-
-		int res = ToolRunner.run(
-				runner,
-				new String[] {});
-		if (res != 0) {
-			throw new RuntimeException(
-					"OSMRunner failed: " + res);
-		}
-
-		System.out.println("finished ingest");
-		System.out.println("**************************************************");
-	}
-
-	private void convertData()
-			throws Exception {
-
-		FeatureDefinitionSet.initialize(new OSMIngestCommandArgs().getMappingContents());
-
-		OSMConversionRunner runner = new OSMConversionRunner(
-				ingestOptions,
-				inputStoreOptions);
-
-		int res = ToolRunner.run(
-				runner,
-				new String[] {});
-		if (res != 0) {
-			throw new RuntimeException(
-					"OSMConversionRunner failed: " + res);
-		}
-
-		System.out.println("finished conversion");
-		System.out.println("**************************************************");
-		System.out.println("**************************************************");
-		System.out.println("**************************************************");
-	}
-
-	public List<String> getParameters() {
-		return parameters;
-	}
-
-	public void setParameters(
-			String hdfsHostPort,
-			String hdfsPath,
-			String storeName ) {
-		this.parameters = new ArrayList<String>();
-		this.parameters.add(hdfsHostPort);
-		this.parameters.add(hdfsPath);
-		this.parameters.add(storeName);
-	}
-
-	public OSMIngestCommandArgs getIngestOptions() {
-		return ingestOptions;
-	}
-
-	public void setIngestOptions(
-			OSMIngestCommandArgs ingestOptions ) {
-		this.ingestOptions = ingestOptions;
-	}
-
-	public DataStorePluginOptions getInputStoreOptions() {
-		return inputStoreOptions;
-	}
-
-	public void setInputStoreOptions(
-			DataStorePluginOptions inputStoreOptions ) {
-		this.inputStoreOptions = inputStoreOptions;
+		return outputs;
 	}
 }

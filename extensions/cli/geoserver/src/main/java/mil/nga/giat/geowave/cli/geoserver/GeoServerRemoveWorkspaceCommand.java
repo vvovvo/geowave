@@ -9,16 +9,19 @@ import javax.ws.rs.core.Response.Status;
 
 import mil.nga.giat.geowave.core.cli.annotations.GeowaveOperation;
 import mil.nga.giat.geowave.core.cli.api.Command;
+import mil.nga.giat.geowave.core.cli.api.DefaultOperation;
 import mil.nga.giat.geowave.core.cli.api.OperationParams;
 import mil.nga.giat.geowave.core.cli.operations.config.options.ConfigOptions;
 
+import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
 
-@GeowaveOperation(name = "rmws", parentOperation = GeoServerSection.class)
+@GeowaveOperation(name = "rmws", parentOperation = GeoServerSection.class, restEnabled = GeowaveOperation.RestEnabledType.POST)
 @Parameters(commandDescription = "Remove GeoServer workspace")
-public class GeoServerRemoveWorkspaceCommand implements
+public class GeoServerRemoveWorkspaceCommand extends
+		DefaultOperation<String> implements
 		Command
 {
 	private GeoServerRestClient geoserverClient = null;
@@ -56,15 +59,21 @@ public class GeoServerRemoveWorkspaceCommand implements
 					"Requires argument: <workspace name>");
 		}
 
+		JCommander.getConsole().println(
+				computeResults(params));
+	}
+
+	@Override
+	protected String computeResults(
+			OperationParams params )
+			throws Exception {
 		wsName = parameters.get(0);
 
 		Response deleteWorkspaceResponse = geoserverClient.deleteWorkspace(wsName);
 		if (deleteWorkspaceResponse.getStatus() == Status.OK.getStatusCode()) {
-			System.out.println("Delete workspace '" + wsName + "' from GeoServer: OK");
+			return "Delete workspace '" + wsName + "' from GeoServer: OK";
 		}
-		else {
-			System.err.println("Error deleting workspace '" + wsName + "' from GeoServer; code = "
-					+ deleteWorkspaceResponse.getStatus());
-		}
+		return "Error deleting workspace '" + wsName + "' from GeoServer; code = "
+				+ deleteWorkspaceResponse.getStatus();
 	}
 }

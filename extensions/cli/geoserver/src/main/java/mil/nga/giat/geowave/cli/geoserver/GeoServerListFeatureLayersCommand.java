@@ -7,16 +7,19 @@ import javax.ws.rs.core.Response.Status;
 
 import mil.nga.giat.geowave.core.cli.annotations.GeowaveOperation;
 import mil.nga.giat.geowave.core.cli.api.Command;
+import mil.nga.giat.geowave.core.cli.api.DefaultOperation;
 import mil.nga.giat.geowave.core.cli.api.OperationParams;
 import mil.nga.giat.geowave.core.cli.operations.config.options.ConfigOptions;
 import net.sf.json.JSONObject;
 
+import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
-@GeowaveOperation(name = "listfl", parentOperation = GeoServerSection.class)
+@GeowaveOperation(name = "listfl", parentOperation = GeoServerSection.class, restEnabled = GeowaveOperation.RestEnabledType.POST)
 @Parameters(commandDescription = "List GeoServer feature layers")
-public class GeoServerListFeatureLayersCommand implements
+public class GeoServerListFeatureLayersCommand extends
+		DefaultOperation<String> implements
 		Command
 {
 	private GeoServerRestClient geoserverClient = null;
@@ -63,18 +66,23 @@ public class GeoServerListFeatureLayersCommand implements
 	public void execute(
 			OperationParams params )
 			throws Exception {
+		JCommander.getConsole().println(
+				computeResults(params));
+	}
+
+	@Override
+	protected String computeResults(
+			OperationParams params )
+			throws Exception {
 		Response listLayersResponse = geoserverClient.getFeatureLayers(
 				workspace,
 				datastore,
 				geowaveOnly);
 
 		if (listLayersResponse.getStatus() == Status.OK.getStatusCode()) {
-			System.out.println("\nGeoServer layer list:");
 			JSONObject listObj = JSONObject.fromObject(listLayersResponse.getEntity());
-			System.out.println(listObj.toString(2));
+			return "\nGeoServer layer list: " + listObj.toString(2);
 		}
-		else {
-			System.err.println("Error getting GeoServer layer list; code = " + listLayersResponse.getStatus());
-		}
+		return "Error getting GeoServer layer list; code = " + listLayersResponse.getStatus();
 	}
 }

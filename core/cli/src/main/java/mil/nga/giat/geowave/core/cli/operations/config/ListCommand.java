@@ -6,6 +6,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+import org.restlet.resource.Get;
+
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -15,11 +19,14 @@ import mil.nga.giat.geowave.core.cli.api.Command;
 import mil.nga.giat.geowave.core.cli.api.DefaultOperation;
 import mil.nga.giat.geowave.core.cli.api.OperationParams;
 import mil.nga.giat.geowave.core.cli.operations.config.options.ConfigOptions;
+import mil.nga.giat.geowave.core.cli.parser.ManualOperationParams;
 
-@GeowaveOperation(name = "list", parentOperation = ConfigSection.class)
+import static mil.nga.giat.geowave.core.cli.annotations.GeowaveOperation.RestEnabledType.*;
+
+@GeowaveOperation(name = "list", parentOperation = ConfigSection.class, restEnabled = GET)
 @Parameters(commandDescription = "List property name within cache")
 public class ListCommand extends
-		DefaultOperation implements
+		DefaultOperation<Properties> implements
 		Command
 {
 
@@ -31,6 +38,35 @@ public class ListCommand extends
 
 	@Override
 	public void execute(
+			OperationParams params ) {
+
+		Pair<String, Properties> list = getList(params);
+		String name = list.getKey();
+		Properties p = list.getValue();
+
+		JCommander.getConsole().println(
+				"PROPERTIES (" + name + ")");
+
+		List<String> keys = new ArrayList<String>();
+		keys.addAll(p.stringPropertyNames());
+		Collections.sort(keys);
+
+		for (String key : keys) {
+			String value = (String) p.get(key);
+			JCommander.getConsole().println(
+					key + ": " + value);
+		}
+	}
+
+	@Override
+	protected Properties computeResults(
+			OperationParams params ) {
+
+		return getList(
+				params).getValue();
+	}
+
+	private Pair<String, Properties> getList(
 			OperationParams params ) {
 
 		File f = (File) params.getContext().get(
@@ -49,18 +85,9 @@ public class ListCommand extends
 					null);
 		}
 
-		JCommander.getConsole().println(
-				"PROPERTIES (" + f.getName() + ")");
-
-		List<String> keys = new ArrayList<String>();
-		keys.addAll(p.stringPropertyNames());
-		Collections.sort(keys);
-
-		for (String key : keys) {
-			String value = (String) p.get(key);
-			JCommander.getConsole().println(
-					key + ": " + value);
-		}
+		return new ImmutablePair<>(
+				f.getName(),
+				p);
 	}
 
 }

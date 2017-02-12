@@ -6,29 +6,74 @@ import java.util.List;
 import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
+import org.restlet.representation.Representation;
+import org.restlet.data.Form;
+import org.restlet.resource.Get;
+import org.restlet.resource.Post;
+import org.restlet.data.Status;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
 
 import mil.nga.giat.geowave.core.cli.annotations.GeowaveOperation;
+import mil.nga.giat.geowave.core.cli.annotations.RestParameters;
 import mil.nga.giat.geowave.core.cli.api.Command;
 import mil.nga.giat.geowave.core.cli.api.DefaultOperation;
 import mil.nga.giat.geowave.core.cli.api.OperationParams;
 import mil.nga.giat.geowave.core.cli.operations.config.options.ConfigOptions;
+import mil.nga.giat.geowave.core.cli.parser.ManualOperationParams;
 
-@GeowaveOperation(name = "set", parentOperation = ConfigSection.class)
+@GeowaveOperation(name = "set", parentOperation = ConfigSection.class, restEnabled = GeowaveOperation.RestEnabledType.POST)
 @Parameters(commandDescription = "Set property name within cache")
 public class SetCommand extends
-		DefaultOperation implements
+		DefaultOperation<Object> implements
 		Command
 {
 
+	private static int SUCCESS = 0;
+	private static int USAGE_ERROR = -1;
+	private static int WRITE_FAILURE = -2;
+
 	@Parameter(description = "<name> <value>")
+	@RestParameters(names = {
+		"key",
+		"value"
+	})
 	private List<String> parameters = new ArrayList<String>();
 
 	@Override
 	public void execute(
+			OperationParams params ) {
+		setKeyValue(params);
+	}
+
+	/**
+	 * Add rest endpoint for the set command. Looks for GET params with keys
+	 * 'key' and 'value' to set.
+	 * 
+	 * @return string containing json with details of success or failure of the
+	 *         set
+	 */
+	@Override
+	public Object computeResults(
+			OperationParams params ) {
+		try {
+			return setKeyValue(params);
+		}
+		catch (WritePropertiesException | ParameterException e) {
+			this.setStatus(
+					Status.SERVER_ERROR_INTERNAL,
+					e.getMessage());
+			return null;
+		}
+	}
+
+	/**
+	 * Set the key value pair in the config. Store the previous value of the key
+	 * in prevValue
+	 */
+	private Object setKeyValue(
 			OperationParams params ) {
 
 		File f = (File) params.getContext().get(
@@ -57,12 +102,18 @@ public class SetCommand extends
 					"Requires: <name> <value>");
 		}
 
-		p.setProperty(
+		Object previousValue = p.setProperty(
 				key,
 				value);
-		ConfigOptions.writeProperties(
+		if (!ConfigOptions.writeProperties(
 				f,
-				p);
+				p)) {
+			throw new WritePropertiesException(
+					"Write failure");
+		}
+		else {
+			return previousValue;
+		}
 	}
 
 	public List<String> getParameters() {
@@ -75,5 +126,17 @@ public class SetCommand extends
 		this.parameters = new ArrayList<String>();
 		this.parameters.add(key);
 		this.parameters.add(value);
+	}
+
+	private static class WritePropertiesException extends
+			RuntimeException
+	{
+
+		private WritePropertiesException(
+				String string ) {
+			super(
+					string);
+		}
+
 	}
 }

@@ -16,7 +16,7 @@ import mil.nga.giat.geowave.core.store.operations.remote.options.StoreLoader;
 import mil.nga.giat.geowave.datastore.accumulo.split.SplitCommandLineOptions;
 
 public abstract class AbstractSplitsCommand extends
-		DefaultOperation
+		DefaultOperation<Void>
 {
 
 	@Parameter(description = "<storename>")
@@ -41,24 +41,7 @@ public abstract class AbstractSplitsCommand extends
 					"Requires arguments: <storename>");
 		}
 
-		String inputStoreName = parameters.get(0);
-
-		// Config file
-		File configFile = (File) params.getContext().get(
-				ConfigOptions.PROPERTIES_FILE_CONTEXT);
-
-		// Attempt to load input store.
-		if (inputStoreOptions == null) {
-			StoreLoader inputStoreLoader = new StoreLoader(
-					inputStoreName);
-			if (!inputStoreLoader.loadFromConfig(configFile)) {
-				throw new ParameterException(
-						"Cannot find store name: " + inputStoreLoader.getStoreName());
-			}
-			inputStoreOptions = inputStoreLoader.getDataStorePlugin();
-		}
-
-		doSplit();
+		computeResults(params);
 	}
 
 	public abstract void doSplit()
@@ -90,5 +73,30 @@ public abstract class AbstractSplitsCommand extends
 	public void setInputStoreOptions(
 			DataStorePluginOptions inputStoreOptions ) {
 		this.inputStoreOptions = inputStoreOptions;
+	}
+
+	@Override
+	protected Void computeResults(
+			OperationParams params )
+			throws Exception {
+		String inputStoreName = parameters.get(0);
+
+		// Config file
+		File configFile = (File) params.getContext().get(
+				ConfigOptions.PROPERTIES_FILE_CONTEXT);
+
+		// Attempt to load input store.
+		if (inputStoreOptions == null) {
+			StoreLoader inputStoreLoader = new StoreLoader(
+					inputStoreName);
+			if (!inputStoreLoader.loadFromConfig(configFile)) {
+				throw new ParameterException(
+						"Cannot find store name: " + inputStoreLoader.getStoreName());
+			}
+			inputStoreOptions = inputStoreLoader.getDataStorePlugin();
+		}
+
+		doSplit();
+		return null;
 	}
 }

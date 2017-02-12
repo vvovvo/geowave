@@ -9,16 +9,19 @@ import javax.ws.rs.core.Response.Status;
 
 import mil.nga.giat.geowave.core.cli.annotations.GeowaveOperation;
 import mil.nga.giat.geowave.core.cli.api.Command;
+import mil.nga.giat.geowave.core.cli.api.DefaultOperation;
 import mil.nga.giat.geowave.core.cli.api.OperationParams;
 import mil.nga.giat.geowave.core.cli.operations.config.options.ConfigOptions;
 
+import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
 
-@GeowaveOperation(name = "addws", parentOperation = GeoServerSection.class)
+@GeowaveOperation(name = "addws", parentOperation = GeoServerSection.class, restEnabled = GeowaveOperation.RestEnabledType.POST)
 @Parameters(commandDescription = "Add GeoServer workspace")
-public class GeoServerAddWorkspaceCommand implements
+public class GeoServerAddWorkspaceCommand extends
+		DefaultOperation<String> implements
 		Command
 {
 	private GeoServerRestClient geoserverClient = null;
@@ -51,6 +54,14 @@ public class GeoServerAddWorkspaceCommand implements
 	public void execute(
 			OperationParams params )
 			throws Exception {
+		JCommander.getConsole().println(
+				computeResults(params));
+	}
+
+	@Override
+	protected String computeResults(
+			OperationParams params )
+			throws Exception {
 		if (parameters.size() != 1) {
 			throw new ParameterException(
 					"Requires argument: <workspace name>");
@@ -60,11 +71,8 @@ public class GeoServerAddWorkspaceCommand implements
 
 		Response addWorkspaceResponse = geoserverClient.addWorkspace(wsName);
 		if (addWorkspaceResponse.getStatus() == Status.CREATED.getStatusCode()) {
-			System.out.println("Add workspace '" + wsName + "' to GeoServer: OK");
+			return "Add workspace '" + wsName + "' to GeoServer: OK";
 		}
-		else {
-			System.err.println("Error adding workspace '" + wsName + "' to GeoServer; code = "
-					+ addWorkspaceResponse.getStatus());
-		}
+		return "Error adding workspace '" + wsName + "' to GeoServer; code = " + addWorkspaceResponse.getStatus();
 	}
 }

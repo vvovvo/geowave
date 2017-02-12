@@ -12,6 +12,7 @@ import com.beust.jcommander.ParametersDelegate;
 
 import mil.nga.giat.geowave.core.cli.annotations.GeowaveOperation;
 import mil.nga.giat.geowave.core.cli.api.Command;
+import mil.nga.giat.geowave.core.cli.api.DefaultOperation;
 import mil.nga.giat.geowave.core.cli.api.OperationParams;
 import mil.nga.giat.geowave.core.cli.operations.config.options.ConfigOptions;
 import mil.nga.giat.geowave.core.ingest.avro.AvroFormatPlugin;
@@ -27,9 +28,10 @@ import mil.nga.giat.geowave.core.store.operations.remote.options.IndexPluginOpti
 import mil.nga.giat.geowave.core.store.operations.remote.options.VisibilityOptions;
 import mil.nga.giat.geowave.core.store.operations.remote.options.StoreLoader;
 
-@GeowaveOperation(name = "localToMrGW", parentOperation = IngestSection.class)
+@GeowaveOperation(name = "localToMrGW", parentOperation = IngestSection.class, restEnabled = GeowaveOperation.RestEnabledType.POST)
 @Parameters(commandDescription = "Copy supported files from local file system to HDFS and ingest from HDFS")
-public class LocalToMapReduceToGeowaveCommand implements
+public class LocalToMapReduceToGeowaveCommand extends
+		DefaultOperation<Void> implements
 		Command
 {
 
@@ -66,10 +68,13 @@ public class LocalToMapReduceToGeowaveCommand implements
 
 	/**
 	 * Prep the driver & run the operation.
+	 * 
+	 * @throws Exception
 	 */
 	@Override
 	public void execute(
-			OperationParams params ) {
+			OperationParams params )
+			throws Exception {
 
 		// Ensure we have all the required arguments
 		if (parameters.size() != 5) {
@@ -77,6 +82,85 @@ public class LocalToMapReduceToGeowaveCommand implements
 					"Requires arguments: <file or directory> <hdfs host:port> <path to base directory to write to> <store name> <comma delimited index/group list>");
 		}
 
+		computeResults(params);
+	}
+
+	public List<String> getParameters() {
+		return parameters;
+	}
+
+	public void setParameters(
+			String fileOrDirectory,
+			String hdfsHostPort,
+			String pathToBaseDirectory,
+			String storeName,
+			String indexList ) {
+		parameters = new ArrayList<String>();
+		parameters.add(fileOrDirectory);
+		parameters.add(hdfsHostPort);
+		parameters.add(pathToBaseDirectory);
+		parameters.add(storeName);
+		parameters.add(indexList);
+	}
+
+	public DataStorePluginOptions getInputStoreOptions() {
+		return inputStoreOptions;
+	}
+
+	public void setInputStoreOptions(
+			DataStorePluginOptions inputStoreOptions ) {
+		this.inputStoreOptions = inputStoreOptions;
+	}
+
+	public List<IndexPluginOptions> getInputIndexOptions() {
+		return inputIndexOptions;
+	}
+
+	public void setInputIndexOptions(
+			List<IndexPluginOptions> inputIndexOptions ) {
+		this.inputIndexOptions = inputIndexOptions;
+	}
+
+	public VisibilityOptions getIngestOptions() {
+		return ingestOptions;
+	}
+
+	public void setIngestOptions(
+			VisibilityOptions ingestOptions ) {
+		this.ingestOptions = ingestOptions;
+	}
+
+	public MapReduceCommandLineOptions getMapReduceOptions() {
+		return mapReduceOptions;
+	}
+
+	public void setMapReduceOptions(
+			MapReduceCommandLineOptions mapReduceOptions ) {
+		this.mapReduceOptions = mapReduceOptions;
+	}
+
+	public LocalInputCommandLineOptions getLocalInputOptions() {
+		return localInputOptions;
+	}
+
+	public void setLocalInputOptions(
+			LocalInputCommandLineOptions localInputOptions ) {
+		this.localInputOptions = localInputOptions;
+	}
+
+	public IngestFormatPluginOptions getPluginFormats() {
+		return pluginFormats;
+	}
+
+	public void setPluginFormats(
+			IngestFormatPluginOptions pluginFormats ) {
+		this.pluginFormats = pluginFormats;
+	}
+
+	@Override
+	protected Void computeResults(
+			OperationParams params )
+			throws Exception {
 		if (mapReduceOptions.getJobTrackerOrResourceManagerHostPort() == null) {
 			throw new ParameterException(
 					"Requires job tracker or resource manager option (try geowave help <command>...)");
@@ -158,77 +242,6 @@ public class LocalToMapReduceToGeowaveCommand implements
 						"Ingest failed to execute");
 			}
 		}
-	}
-
-	public List<String> getParameters() {
-		return parameters;
-	}
-
-	public void setParameters(
-			String fileOrDirectory,
-			String hdfsHostPort,
-			String pathToBaseDirectory,
-			String storeName,
-			String indexList ) {
-		parameters = new ArrayList<String>();
-		parameters.add(fileOrDirectory);
-		parameters.add(hdfsHostPort);
-		parameters.add(pathToBaseDirectory);
-		parameters.add(storeName);
-		parameters.add(indexList);
-	}
-
-	public DataStorePluginOptions getInputStoreOptions() {
-		return inputStoreOptions;
-	}
-
-	public void setInputStoreOptions(
-			DataStorePluginOptions inputStoreOptions ) {
-		this.inputStoreOptions = inputStoreOptions;
-	}
-
-	public List<IndexPluginOptions> getInputIndexOptions() {
-		return inputIndexOptions;
-	}
-
-	public void setInputIndexOptions(
-			List<IndexPluginOptions> inputIndexOptions ) {
-		this.inputIndexOptions = inputIndexOptions;
-	}
-
-	public VisibilityOptions getIngestOptions() {
-		return ingestOptions;
-	}
-
-	public void setIngestOptions(
-			VisibilityOptions ingestOptions ) {
-		this.ingestOptions = ingestOptions;
-	}
-
-	public MapReduceCommandLineOptions getMapReduceOptions() {
-		return mapReduceOptions;
-	}
-
-	public void setMapReduceOptions(
-			MapReduceCommandLineOptions mapReduceOptions ) {
-		this.mapReduceOptions = mapReduceOptions;
-	}
-
-	public LocalInputCommandLineOptions getLocalInputOptions() {
-		return localInputOptions;
-	}
-
-	public void setLocalInputOptions(
-			LocalInputCommandLineOptions localInputOptions ) {
-		this.localInputOptions = localInputOptions;
-	}
-
-	public IngestFormatPluginOptions getPluginFormats() {
-		return pluginFormats;
-	}
-
-	public void setPluginFormats(
-			IngestFormatPluginOptions pluginFormats ) {
-		this.pluginFormats = pluginFormats;
+		return null;
 	};
 }

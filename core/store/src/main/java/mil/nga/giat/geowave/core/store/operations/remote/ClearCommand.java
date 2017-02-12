@@ -21,10 +21,10 @@ import mil.nga.giat.geowave.core.store.operations.remote.options.StoreLoader;
 import mil.nga.giat.geowave.core.store.query.EverythingQuery;
 import mil.nga.giat.geowave.core.store.query.QueryOptions;
 
-@GeowaveOperation(name = "clear", parentOperation = RemoteSection.class)
+@GeowaveOperation(name = "clear", parentOperation = RemoteSection.class, restEnabled = GeowaveOperation.RestEnabledType.POST)
 @Parameters(commandDescription = "Clear ALL data from a GeoWave store and delete tables")
 public class ClearCommand extends
-		DefaultOperation implements
+		DefaultOperation<Void> implements
 		Command
 {
 
@@ -38,7 +38,31 @@ public class ClearCommand extends
 	@Override
 	public void execute(
 			OperationParams params ) {
+		computeResults(params);
+	}
 
+	public List<String> getParameters() {
+		return parameters;
+	}
+
+	public void setParameters(
+			String storeName ) {
+		this.parameters = new ArrayList<String>();
+		this.parameters.add(storeName);
+	}
+
+	public DataStorePluginOptions getInputStoreOptions() {
+		return inputStoreOptions;
+	}
+
+	public void setInputStoreOptions(
+			DataStorePluginOptions inputStoreOptions ) {
+		this.inputStoreOptions = inputStoreOptions;
+	}
+
+	@Override
+	protected Void computeResults(
+			OperationParams params ) {
 		if (parameters.size() < 1) {
 			throw new ParameterException(
 					"Must specify store name");
@@ -66,24 +90,6 @@ public class ClearCommand extends
 		inputStoreOptions.createDataStore().delete(
 				new QueryOptions(),
 				new EverythingQuery());
-	}
-
-	public List<String> getParameters() {
-		return parameters;
-	}
-
-	public void setParameters(
-			String storeName ) {
-		this.parameters = new ArrayList<String>();
-		this.parameters.add(storeName);
-	}
-
-	public DataStorePluginOptions getInputStoreOptions() {
-		return inputStoreOptions;
-	}
-
-	public void setInputStoreOptions(
-			DataStorePluginOptions inputStoreOptions ) {
-		this.inputStoreOptions = inputStoreOptions;
+		return null;
 	}
 }

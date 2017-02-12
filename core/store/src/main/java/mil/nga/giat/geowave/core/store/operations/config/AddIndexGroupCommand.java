@@ -5,11 +5,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.commons.lang3.StringUtils;
+import org.restlet.data.Form;
+import org.restlet.representation.Representation;
+import org.restlet.resource.Get;
+import org.restlet.resource.Post;
+import org.restlet.data.Status;
+
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
 
 import mil.nga.giat.geowave.core.cli.annotations.GeowaveOperation;
+import mil.nga.giat.geowave.core.cli.annotations.RestParameters;
 import mil.nga.giat.geowave.core.cli.api.Command;
 import mil.nga.giat.geowave.core.cli.api.DefaultOperation;
 import mil.nga.giat.geowave.core.cli.api.OperationParams;
@@ -17,21 +25,62 @@ import mil.nga.giat.geowave.core.cli.operations.config.ConfigSection;
 import mil.nga.giat.geowave.core.cli.operations.config.options.ConfigOptions;
 import mil.nga.giat.geowave.core.store.operations.remote.options.IndexGroupPluginOptions;
 import mil.nga.giat.geowave.core.store.operations.remote.options.IndexPluginOptions;
+import mil.nga.giat.geowave.core.cli.parser.ManualOperationParams;
 
-@GeowaveOperation(name = "addindexgrp", parentOperation = ConfigSection.class)
+@GeowaveOperation(name = "addindexgrp", parentOperation = ConfigSection.class, restEnabled = GeowaveOperation.RestEnabledType.POST)
 @Parameters(commandDescription = "Create an index group for usage in GeoWave")
 public class AddIndexGroupCommand extends
-		DefaultOperation implements
+		DefaultOperation<Void> implements
 		Command
 {
+	private static int SUCCESS = 0;
+	private static int USAGE_ERROR = -1;
+	private static int INDEXING_ERROR = -2;
+	private static int GROUP_EXISTS = -3;
 
 	@Parameter(description = "<name> <comma separated list of indexes>")
+	@RestParameters(names = {
+		"name",
+		"names"
+	})
 	private List<String> parameters = new ArrayList<String>();
 
 	@Override
 	public void execute(
 			OperationParams params ) {
+		addIndexGroup(params);
+	}
 
+	/**
+	 * Add rest endpoint for the addIndexGroup command. Looks for POST params
+	 * with keys 'key' and 'value' to set.
+	 * 
+	 * @return none
+	 */
+	@Override
+	public Void computeResults(
+			OperationParams params ) {
+
+		try {
+			addIndexGroup(params);
+		}
+		catch (WritePropertiesException | ParameterException e) {
+			this.setStatus(
+					Status.SERVER_ERROR_INTERNAL,
+					e.getMessage());
+		}
+
+		return null;
+	}
+
+	/**
+	 * Adds index group
+	 * 
+	 * @parameters params
+	 * @return none
+	 */
+	private void addIndexGroup(
+			OperationParams params ) {
 		File propFile = (File) params.getContext().get(
 				ConfigOptions.PROPERTIES_FILE_CONTEXT);
 		Properties existingProps = ConfigOptions.loadProperties(
@@ -79,9 +128,12 @@ public class AddIndexGroupCommand extends
 				getNamespace());
 
 		// Write to disk.
-		ConfigOptions.writeProperties(
+		if (!ConfigOptions.writeProperties(
 				propFile,
-				existingProps);
+				existingProps)) {
+			throw new WritePropertiesException(
+					"Write failure");
+		}
 	}
 
 	public String getPluginName() {
@@ -104,4 +156,13 @@ public class AddIndexGroupCommand extends
 		this.parameters.add(commaSeparatedIndexes);
 	}
 
+	private static class WritePropertiesException extends
+			RuntimeException
+	{
+		private WritePropertiesException(
+				String string ) {
+			super(
+					string);
+		}
+	}
 }

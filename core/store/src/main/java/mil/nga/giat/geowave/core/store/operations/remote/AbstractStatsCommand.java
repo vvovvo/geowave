@@ -25,7 +25,7 @@ import mil.nga.giat.geowave.core.store.operations.remote.options.StoreLoader;
  * Common methods for dumping, manipulating and calculating stats.
  */
 public abstract class AbstractStatsCommand extends
-		DefaultOperation
+		DefaultOperation<Void>
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RecalculateStatsCommand.class);
 

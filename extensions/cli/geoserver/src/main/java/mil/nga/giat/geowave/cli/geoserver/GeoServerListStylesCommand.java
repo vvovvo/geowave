@@ -7,16 +7,19 @@ import javax.ws.rs.core.Response.Status;
 
 import mil.nga.giat.geowave.core.cli.annotations.GeowaveOperation;
 import mil.nga.giat.geowave.core.cli.api.Command;
+import mil.nga.giat.geowave.core.cli.api.DefaultOperation;
 import mil.nga.giat.geowave.core.cli.api.OperationParams;
 import mil.nga.giat.geowave.core.cli.operations.config.options.ConfigOptions;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
+import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameters;
 
-@GeowaveOperation(name = "liststyles", parentOperation = GeoServerSection.class)
+@GeowaveOperation(name = "liststyles", parentOperation = GeoServerSection.class, restEnabled = GeowaveOperation.RestEnabledType.POST)
 @Parameters(commandDescription = "List GeoServer styles")
-public class GeoServerListStylesCommand implements
+public class GeoServerListStylesCommand extends
+		DefaultOperation<String> implements
 		Command
 {
 	private GeoServerRestClient geoserverClient = null;
@@ -45,18 +48,21 @@ public class GeoServerListStylesCommand implements
 	public void execute(
 			OperationParams params )
 			throws Exception {
+		JCommander.getConsole().println(
+				computeResults(params));
+	}
 
+	@Override
+	protected String computeResults(
+			OperationParams params )
+			throws Exception {
 		Response listStylesResponse = geoserverClient.getStyles();
 
 		if (listStylesResponse.getStatus() == Status.OK.getStatusCode()) {
-			System.out.println("\nGeoServer styles list:");
-
 			JSONObject jsonResponse = JSONObject.fromObject(listStylesResponse.getEntity());
 			JSONArray styles = jsonResponse.getJSONArray("styles");
-			System.out.println(styles.toString(2));
+			return "\nGeoServer styles list: " + styles.toString(2);
 		}
-		else {
-			System.err.println("Error getting GeoServer styles list; code = " + listStylesResponse.getStatus());
-		}
+		return "Error getting GeoServer styles list; code = " + listStylesResponse.getStatus();
 	}
 }

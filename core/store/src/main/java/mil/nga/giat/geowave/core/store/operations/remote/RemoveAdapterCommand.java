@@ -22,10 +22,10 @@ import mil.nga.giat.geowave.core.store.operations.remote.options.StoreLoader;
 import mil.nga.giat.geowave.core.store.query.AdapterIdQuery;
 import mil.nga.giat.geowave.core.store.query.QueryOptions;
 
-@GeowaveOperation(name = "rmadapter", parentOperation = RemoteSection.class)
+@GeowaveOperation(name = "rmadapter", parentOperation = RemoteSection.class, restEnabled = GeowaveOperation.RestEnabledType.POST)
 @Parameters(hidden = true, commandDescription = "Remove an adapter from the remote store and all associated data for the adapter")
 public class RemoveAdapterCommand extends
-		DefaultOperation implements
+		DefaultOperation<Void> implements
 		Command
 {
 	private final static Logger LOGGER = LoggerFactory.getLogger(RemoveAdapterCommand.class);
@@ -38,7 +38,33 @@ public class RemoveAdapterCommand extends
 	@Override
 	public void execute(
 			OperationParams params ) {
+		computeResults(params);
+	}
 
+	public List<String> getParameters() {
+		return parameters;
+	}
+
+	public void setParameters(
+			String storeName,
+			String adapterId ) {
+		this.parameters = new ArrayList<String>();
+		this.parameters.add(storeName);
+		this.parameters.add(adapterId);
+	}
+
+	public DataStorePluginOptions getInputStoreOptions() {
+		return inputStoreOptions;
+	}
+
+	public void setInputStoreOptions(
+			DataStorePluginOptions inputStoreOptions ) {
+		this.inputStoreOptions = inputStoreOptions;
+	}
+
+	@Override
+	protected Void computeResults(
+			OperationParams params ) {
 		// Ensure we have all the required arguments
 		if (parameters.size() != 2) {
 			throw new ParameterException(
@@ -70,28 +96,7 @@ public class RemoveAdapterCommand extends
 				new AdapterIdQuery(
 						new ByteArrayId(
 								adapterId)));
-
-	}
-
-	public List<String> getParameters() {
-		return parameters;
-	}
-
-	public void setParameters(
-			String storeName,
-			String adapterId ) {
-		this.parameters = new ArrayList<String>();
-		this.parameters.add(storeName);
-		this.parameters.add(adapterId);
-	}
-
-	public DataStorePluginOptions getInputStoreOptions() {
-		return inputStoreOptions;
-	}
-
-	public void setInputStoreOptions(
-			DataStorePluginOptions inputStoreOptions ) {
-		this.inputStoreOptions = inputStoreOptions;
+		return null;
 	}
 
 }

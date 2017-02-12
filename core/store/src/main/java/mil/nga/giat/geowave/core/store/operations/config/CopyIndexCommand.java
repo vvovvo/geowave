@@ -5,25 +5,44 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.commons.lang3.StringUtils;
+import org.restlet.resource.Get;
+import org.restlet.resource.Post;
+import org.restlet.data.Form;
+import org.restlet.data.Status;
+import org.restlet.representation.Representation;
+
+import mil.nga.giat.geowave.core.cli.api.DefaultOperation;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
 
 import mil.nga.giat.geowave.core.cli.annotations.GeowaveOperation;
+import mil.nga.giat.geowave.core.cli.annotations.RestParameters;
 import mil.nga.giat.geowave.core.cli.api.Command;
 import mil.nga.giat.geowave.core.cli.api.OperationParams;
 import mil.nga.giat.geowave.core.cli.operations.config.ConfigSection;
 import mil.nga.giat.geowave.core.cli.operations.config.options.ConfigOptions;
 import mil.nga.giat.geowave.core.store.operations.remote.options.IndexPluginOptions;
+import mil.nga.giat.geowave.core.cli.parser.ManualOperationParams;
+import static mil.nga.giat.geowave.core.cli.annotations.GeowaveOperation.RestEnabledType.*;
 
-@GeowaveOperation(name = "cpindex", parentOperation = ConfigSection.class)
+@GeowaveOperation(name = "cpindex", parentOperation = ConfigSection.class, restEnabled = POST)
 @Parameters(commandDescription = "Copy and modify existing index configuration")
-public class CopyIndexCommand implements
+public class CopyIndexCommand extends
+		DefaultOperation<Void> implements
 		Command
 {
+	private static int SUCCESS = 0;
+	private static int USAGE_ERROR = -1;
+	private static int INDEX_EXISTS = -2;
 
 	@Parameter(description = "<name> <new name>")
+	@RestParameters(names = {
+		"name",
+		"newname"
+	})
 	private List<String> parameters = new ArrayList<String>();
 
 	@Parameter(names = {
@@ -67,6 +86,33 @@ public class CopyIndexCommand implements
 	@Override
 	public void execute(
 			OperationParams params ) {
+		copyIndex(params);
+
+	}
+
+	@Override
+	public Void computeResults(
+			OperationParams params ) {
+
+		try {
+			copyIndex(params);
+		}
+		catch (WritePropertiesException | ParameterException e) {
+			this.setStatus(
+					Status.SERVER_ERROR_INTERNAL,
+					e.getMessage());
+		}
+
+		return null;
+	}
+
+	/**
+	 * copies index
+	 * 
+	 * @return none
+	 */
+	private void copyIndex(
+			OperationParams params ) {
 
 		if (parameters.size() < 2) {
 			throw new ParameterException(
@@ -99,10 +145,12 @@ public class CopyIndexCommand implements
 		}
 
 		// Write properties file
-		ConfigOptions.writeProperties(
+		if (!ConfigOptions.writeProperties(
 				configFile,
-				existingProps);
-
+				existingProps)) {
+			throw new WritePropertiesException(
+					"Write failure");
+		}
 	}
 
 	public List<String> getParameters() {
@@ -115,6 +163,17 @@ public class CopyIndexCommand implements
 		this.parameters = new ArrayList<String>();
 		this.parameters.add(existingIndex);
 		this.parameters.add(newIndex);
+	}
+
+	private static class WritePropertiesException extends
+			RuntimeException
+	{
+		private WritePropertiesException(
+				String string ) {
+			super(
+					string);
+		}
+
 	}
 
 }

@@ -1,10 +1,16 @@
 package mil.nga.giat.geowave.core.store.operations.config;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.restlet.representation.Representation;
+import org.restlet.data.Form;
+import org.restlet.data.Status;
+import org.restlet.resource.Post;
+import org.restlet.resource.ServerResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,15 +20,23 @@ import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
 
 import mil.nga.giat.geowave.core.cli.annotations.GeowaveOperation;
+import mil.nga.giat.geowave.core.cli.annotations.RestParameters;
 import mil.nga.giat.geowave.core.cli.api.Command;
+import mil.nga.giat.geowave.core.cli.api.DefaultOperation;
 import mil.nga.giat.geowave.core.cli.api.OperationParams;
 import mil.nga.giat.geowave.core.cli.operations.config.ConfigSection;
 import mil.nga.giat.geowave.core.cli.operations.config.options.ConfigOptions;
+import mil.nga.giat.geowave.core.cli.parser.ManualOperationParams;
+import mil.nga.giat.geowave.core.store.GeoWaveStoreFinder;
+import mil.nga.giat.geowave.core.store.StoreFactoryOptions;
+import mil.nga.giat.geowave.core.store.memory.MemoryRequiredOptions;
+import mil.nga.giat.geowave.core.store.memory.MemoryStoreFactoryFamily;
 import mil.nga.giat.geowave.core.store.operations.remote.options.DataStorePluginOptions;
 
-@GeowaveOperation(name = "addstore", parentOperation = ConfigSection.class)
+@GeowaveOperation(name = "addstore", parentOperation = ConfigSection.class, restEnabled = GeowaveOperation.RestEnabledType.POST)
 @Parameters(commandDescription = "Create a store within Geowave")
-public class AddStoreCommand implements
+public class AddStoreCommand extends
+		DefaultOperation<Void> implements
 		Command
 {
 
@@ -31,6 +45,9 @@ public class AddStoreCommand implements
 	public static final String PROPERTIES_CONTEXT = "properties";
 
 	@Parameter(description = "<name>")
+	@RestParameters(names = {
+		"name"
+	})
 	private List<String> parameters = new ArrayList<String>();
 
 	@Parameter(names = {
@@ -54,6 +71,9 @@ public class AddStoreCommand implements
 
 		// Load SPI options for the given type into pluginOptions.
 		if (storeType != null) {
+			if (storeType.equals("memory")) GeoWaveStoreFinder.getRegisteredStoreFactoryFamilies().put(
+					storeType,
+					new MemoryStoreFactoryFamily());
 			pluginOptions.selectPlugin(storeType);
 		}
 		else {
@@ -92,6 +112,12 @@ public class AddStoreCommand implements
 	@Override
 	public void execute(
 			OperationParams params ) {
+		computeResults(params);
+	}
+
+	@Override
+	public Void computeResults(
+			OperationParams params ) {
 
 		File propFile = (File) params.getContext().get(
 				ConfigOptions.PROPERTIES_FILE_CONTEXT);
@@ -119,6 +145,9 @@ public class AddStoreCommand implements
 				existingProps,
 				getNamespace());
 
+		final StoreFactoryOptions opts = (MemoryRequiredOptions) pluginOptions.getFactoryOptions();
+		opts.setGeowaveNamespace("namespace");
+
 		// Make default?
 		if (Boolean.TRUE.equals(makeDefault)) {
 			existingProps.setProperty(
@@ -130,6 +159,8 @@ public class AddStoreCommand implements
 		ConfigOptions.writeProperties(
 				propFile,
 				existingProps);
+
+		return null;
 	}
 
 	public DataStorePluginOptions getPluginOptions() {

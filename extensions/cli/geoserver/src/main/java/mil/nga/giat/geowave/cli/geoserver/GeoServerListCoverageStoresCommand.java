@@ -7,6 +7,7 @@ import javax.ws.rs.core.Response.Status;
 
 import mil.nga.giat.geowave.core.cli.annotations.GeowaveOperation;
 import mil.nga.giat.geowave.core.cli.api.Command;
+import mil.nga.giat.geowave.core.cli.api.DefaultOperation;
 import mil.nga.giat.geowave.core.cli.api.OperationParams;
 import mil.nga.giat.geowave.core.cli.operations.config.options.ConfigOptions;
 import net.sf.json.JSONArray;
@@ -15,9 +16,10 @@ import net.sf.json.JSONObject;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
-@GeowaveOperation(name = "listcs", parentOperation = GeoServerSection.class)
+@GeowaveOperation(name = "listcs", parentOperation = GeoServerSection.class, restEnabled = GeowaveOperation.RestEnabledType.POST)
 @Parameters(commandDescription = "List GeoServer coverage stores")
-public class GeoServerListCoverageStoresCommand implements
+public class GeoServerListCoverageStoresCommand extends
+		DefaultOperation<String> implements
 		Command
 {
 	private GeoServerRestClient geoserverClient = null;
@@ -52,6 +54,13 @@ public class GeoServerListCoverageStoresCommand implements
 	public void execute(
 			OperationParams params )
 			throws Exception {
+
+	}
+
+	@Override
+	protected String computeResults(
+			OperationParams params )
+			throws Exception {
 		if (workspace == null || workspace.isEmpty()) {
 			workspace = geoserverClient.getConfig().getWorkspace();
 		}
@@ -59,15 +68,11 @@ public class GeoServerListCoverageStoresCommand implements
 		Response listCvgStoresResponse = geoserverClient.getCoverageStores(workspace);
 
 		if (listCvgStoresResponse.getStatus() == Status.OK.getStatusCode()) {
-			System.out.println("\nGeoServer coverage stores list for '" + workspace + "':");
-
 			JSONObject jsonResponse = JSONObject.fromObject(listCvgStoresResponse.getEntity());
 			JSONArray cvgStores = jsonResponse.getJSONArray("coverageStores");
-			System.out.println(cvgStores.toString(2));
+			return "\nGeoServer coverage stores list for '" + workspace + "': " + cvgStores.toString(2);
 		}
-		else {
-			System.err.println("Error getting GeoServer coverage stores list for '" + workspace + "'; code = "
-					+ listCvgStoresResponse.getStatus());
-		}
+		return "Error getting GeoServer coverage stores list for '" + workspace + "'; code = "
+				+ listCvgStoresResponse.getStatus();
 	}
 }

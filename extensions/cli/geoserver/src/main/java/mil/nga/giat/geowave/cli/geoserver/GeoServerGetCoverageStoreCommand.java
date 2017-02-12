@@ -9,17 +9,20 @@ import javax.ws.rs.core.Response.Status;
 
 import mil.nga.giat.geowave.core.cli.annotations.GeowaveOperation;
 import mil.nga.giat.geowave.core.cli.api.Command;
+import mil.nga.giat.geowave.core.cli.api.DefaultOperation;
 import mil.nga.giat.geowave.core.cli.api.OperationParams;
 import mil.nga.giat.geowave.core.cli.operations.config.options.ConfigOptions;
 import net.sf.json.JSONObject;
 
+import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
 
-@GeowaveOperation(name = "getcs", parentOperation = GeoServerSection.class)
+@GeowaveOperation(name = "getcs", parentOperation = GeoServerSection.class, restEnabled = GeowaveOperation.RestEnabledType.POST)
 @Parameters(commandDescription = "Get GeoServer CoverageStore info")
-public class GeoServerGetCoverageStoreCommand implements
+public class GeoServerGetCoverageStoreCommand extends
+		DefaultOperation<String> implements
 		Command
 {
 	private GeoServerRestClient geoserverClient = null;
@@ -58,6 +61,14 @@ public class GeoServerGetCoverageStoreCommand implements
 	public void execute(
 			OperationParams params )
 			throws Exception {
+		JCommander.getConsole().println(
+				computeResults(params));
+	}
+
+	@Override
+	protected String computeResults(
+			OperationParams params )
+			throws Exception {
 		if (parameters.size() != 1) {
 			throw new ParameterException(
 					"Requires argument: <coverage store name>");
@@ -74,15 +85,11 @@ public class GeoServerGetCoverageStoreCommand implements
 				csName);
 
 		if (getCvgStoreResponse.getStatus() == Status.OK.getStatusCode()) {
-			System.out.println("\nGeoServer coverage store info for '" + csName + "':");
-
 			JSONObject jsonResponse = JSONObject.fromObject(getCvgStoreResponse.getEntity());
 			JSONObject cvgstore = jsonResponse.getJSONObject("coverageStore");
-			System.out.println(cvgstore.toString(2));
+			return "\nGeoServer coverage store info for '" + csName + "': " + cvgstore.toString(2);
 		}
-		else {
-			System.err.println("Error getting GeoServer coverage store info for '" + csName + "'; code = "
-					+ getCvgStoreResponse.getStatus());
-		}
+		return "Error getting GeoServer coverage store info for '" + csName + "'; code = "
+				+ getCvgStoreResponse.getStatus();
 	}
 }

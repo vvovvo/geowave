@@ -12,6 +12,7 @@ import org.apache.commons.io.IOUtils;
 
 import mil.nga.giat.geowave.core.cli.annotations.GeowaveOperation;
 import mil.nga.giat.geowave.core.cli.api.Command;
+import mil.nga.giat.geowave.core.cli.api.DefaultOperation;
 import mil.nga.giat.geowave.core.cli.api.OperationParams;
 import mil.nga.giat.geowave.core.cli.operations.config.options.ConfigOptions;
 
@@ -19,9 +20,10 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
 
-@GeowaveOperation(name = "setls", parentOperation = GeoServerSection.class)
+@GeowaveOperation(name = "setls", parentOperation = GeoServerSection.class, restEnabled = GeowaveOperation.RestEnabledType.POST)
 @Parameters(commandDescription = "Set GeoServer Layer Style")
-public class GeoServerSetLayerStyleCommand implements
+public class GeoServerSetLayerStyleCommand extends
+		DefaultOperation<String> implements
 		Command
 {
 	private GeoServerRestClient geoserverClient = null;
@@ -65,6 +67,12 @@ public class GeoServerSetLayerStyleCommand implements
 					"Requires argument: <layer name>");
 		}
 
+	}
+
+	@Override
+	protected String computeResults(
+			OperationParams params )
+			throws Exception {
 		layerName = parameters.get(0);
 
 		Response setLayerStyleResponse = geoserverClient.setLayerStyle(
@@ -72,15 +80,11 @@ public class GeoServerSetLayerStyleCommand implements
 				styleName);
 
 		if (setLayerStyleResponse.getStatus() == Status.OK.getStatusCode()) {
-			System.out.println("Set style for GeoServer layer '" + layerName + ": OK");
-
 			final String style = IOUtils.toString((InputStream) setLayerStyleResponse.getEntity());
-			System.out.println(style);
+			return "Set style for GeoServer layer '" + layerName + ": OK" + style;
 
 		}
-		else {
-			System.err.println("Error setting style for GeoServer layer '" + layerName + "'; code = "
-					+ setLayerStyleResponse.getStatus() + " ; " + setLayerStyleResponse.getStatusInfo().toString());
-		}
+		return "Error setting style for GeoServer layer '" + layerName + "'; code = "
+				+ setLayerStyleResponse.getStatus() + " ; " + setLayerStyleResponse.getStatusInfo().toString();
 	}
 }

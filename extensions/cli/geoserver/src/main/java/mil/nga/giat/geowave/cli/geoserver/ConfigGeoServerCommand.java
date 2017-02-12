@@ -5,6 +5,7 @@ import java.util.Properties;
 
 import mil.nga.giat.geowave.core.cli.annotations.GeowaveOperation;
 import mil.nga.giat.geowave.core.cli.api.Command;
+import mil.nga.giat.geowave.core.cli.api.DefaultOperation;
 import mil.nga.giat.geowave.core.cli.api.OperationParams;
 import mil.nga.giat.geowave.core.cli.operations.config.ConfigSection;
 import mil.nga.giat.geowave.core.cli.operations.config.options.ConfigOptions;
@@ -12,9 +13,10 @@ import mil.nga.giat.geowave.core.cli.operations.config.options.ConfigOptions;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
-@GeowaveOperation(name = "geoserver", parentOperation = ConfigSection.class)
+@GeowaveOperation(name = "geoserver", parentOperation = ConfigSection.class, restEnabled = GeowaveOperation.RestEnabledType.POST)
 @Parameters(commandDescription = "Create a local configuration for GeoServer")
-public class ConfigGeoServerCommand implements
+public class ConfigGeoServerCommand extends
+		DefaultOperation<Void> implements
 		Command
 {
 	@Parameter(names = {
@@ -50,43 +52,8 @@ public class ConfigGeoServerCommand implements
 
 	@Override
 	public void execute(
-			OperationParams params )
-			throws Exception {
-		File propFile = (File) params.getContext().get(
-				ConfigOptions.PROPERTIES_FILE_CONTEXT);
-		Properties existingProps = ConfigOptions.loadProperties(
-				propFile,
-				null);
-
-		// all switches are optional
-		if (getUrl() != null) {
-			existingProps.setProperty(
-					GeoServerConfig.GEOSERVER_URL,
-					getUrl());
-		}
-
-		if (getName() != null) {
-			existingProps.setProperty(
-					GeoServerConfig.GEOSERVER_USER,
-					getName());
-		}
-
-		if (getPass() != null) {
-			existingProps.setProperty(
-					GeoServerConfig.GEOSERVER_PASS,
-					getPass());
-		}
-
-		if (getWorkspace() != null) {
-			existingProps.setProperty(
-					GeoServerConfig.GEOSERVER_WORKSPACE,
-					getWorkspace());
-		}
-
-		// Write properties file
-		ConfigOptions.writeProperties(
-				propFile,
-				existingProps);
+			OperationParams params ) {
+		computeResults(params);
 	}
 
 	public String getUrl() {
@@ -123,5 +90,46 @@ public class ConfigGeoServerCommand implements
 	public void setWorkspace(
 			String workspace ) {
 		this.workspace = workspace;
+	}
+
+	@Override
+	protected Void computeResults(
+			OperationParams params ) {
+		File propFile = (File) params.getContext().get(
+				ConfigOptions.PROPERTIES_FILE_CONTEXT);
+		Properties existingProps = ConfigOptions.loadProperties(
+				propFile,
+				null);
+
+		// all switches are optional
+		if (getUrl() != null) {
+			existingProps.setProperty(
+					GeoServerConfig.GEOSERVER_URL,
+					getUrl());
+		}
+
+		if (getName() != null) {
+			existingProps.setProperty(
+					GeoServerConfig.GEOSERVER_USER,
+					getName());
+		}
+
+		if (getPass() != null) {
+			existingProps.setProperty(
+					GeoServerConfig.GEOSERVER_PASS,
+					getPass());
+		}
+
+		if (getWorkspace() != null) {
+			existingProps.setProperty(
+					GeoServerConfig.GEOSERVER_WORKSPACE,
+					getWorkspace());
+		}
+
+		// Write properties file
+		ConfigOptions.writeProperties(
+				propFile,
+				existingProps);
+		return null;
 	}
 }

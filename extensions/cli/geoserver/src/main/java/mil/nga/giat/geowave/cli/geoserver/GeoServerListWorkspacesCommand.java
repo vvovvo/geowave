@@ -1,22 +1,27 @@
 package mil.nga.giat.geowave.cli.geoserver;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import mil.nga.giat.geowave.core.cli.annotations.GeowaveOperation;
 import mil.nga.giat.geowave.core.cli.api.Command;
+import mil.nga.giat.geowave.core.cli.api.DefaultOperation;
 import mil.nga.giat.geowave.core.cli.api.OperationParams;
 import mil.nga.giat.geowave.core.cli.operations.config.options.ConfigOptions;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
+import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameters;
 
-@GeowaveOperation(name = "listws", parentOperation = GeoServerSection.class)
+@GeowaveOperation(name = "listws", parentOperation = GeoServerSection.class, restEnabled = GeowaveOperation.RestEnabledType.POST)
 @Parameters(commandDescription = "List GeoServer workspaces")
-public class GeoServerListWorkspacesCommand implements
+public class GeoServerListWorkspacesCommand extends
+		DefaultOperation<List<String>> implements
 		Command
 {
 	private GeoServerRestClient geoserverClient = null;
@@ -46,10 +51,21 @@ public class GeoServerListWorkspacesCommand implements
 	public void execute(
 			OperationParams params )
 			throws Exception {
+		for (String string : computeResults(params)) {
+			JCommander.getConsole().println(
+					string);
+		}
+	}
+
+	@Override
+	protected List<String> computeResults(
+			OperationParams params )
+			throws Exception {
 		Response getWorkspacesResponse = geoserverClient.getWorkspaces();
 
+		ArrayList<String> results = new ArrayList<>();
 		if (getWorkspacesResponse.getStatus() == Status.OK.getStatusCode()) {
-			System.out.println("\nList of GeoServer workspaces:");
+			results.add("\nList of GeoServer workspaces:");
 
 			JSONObject jsonResponse = JSONObject.fromObject(getWorkspacesResponse.getEntity());
 
@@ -58,13 +74,14 @@ public class GeoServerListWorkspacesCommand implements
 				String wsName = workspaces.getJSONObject(
 						i).getString(
 						"name");
-				System.out.println("  > " + wsName);
+				results.add("  > " + wsName);
 			}
 
-			System.out.println("---\n");
+			results.add("---\n");
 		}
 		else {
-			System.err.println("Error getting GeoServer workspace list; code = " + getWorkspacesResponse.getStatus());
+			results.add("Error getting GeoServer workspace list; code = " + getWorkspacesResponse.getStatus());
 		}
+		return results;
 	}
 }

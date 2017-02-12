@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
@@ -20,21 +23,28 @@ import mil.nga.giat.geowave.core.store.index.Index;
 import mil.nga.giat.geowave.core.store.operations.remote.options.DataStorePluginOptions;
 import mil.nga.giat.geowave.core.store.operations.remote.options.StoreLoader;
 
-@GeowaveOperation(name = "listindex", parentOperation = RemoteSection.class)
+@GeowaveOperation(name = "listindex", parentOperation = RemoteSection.class, restEnabled = GeowaveOperation.RestEnabledType.POST)
 @Parameters(commandDescription = "Display all indices in this remote store")
 public class ListIndexCommand extends
-		DefaultOperation implements
+		DefaultOperation<String> implements
 		Command
 {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(RecalculateStatsCommand.class);
 
 	@Parameter(description = "<store name>")
 	private List<String> parameters = new ArrayList<String>();
 
 	@Override
 	public void execute(
-			OperationParams params )
-			throws IOException {
+			OperationParams params ) {
+		JCommander.getConsole().println(
+				computeResults(params));
+	}
 
+	@Override
+	protected String computeResults(
+			OperationParams params ) {
 		if (parameters.size() < 1) {
 			throw new ParameterException(
 					"Must specify store name");
@@ -70,12 +80,17 @@ public class ListIndexCommand extends
 						index.getId().getString()).append(
 						' ');
 			}
-			it.close();
+			try {
+				it.close();
+			}
+			catch (IOException e) {
+				LOGGER.error(
+						"Unable to close Iterator",
+						e);
+			}
 			result = "Available indexes: " + buffer.toString();
 		}
-
-		JCommander.getConsole().println(
-				result);
+		return result;
 	}
 
 }

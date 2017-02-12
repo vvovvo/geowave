@@ -14,5 +14,7 @@
 		<module>api</module>
 		<module>client</module>
 		<module>webapp</module>
+		<module>rest</module>
+		<module>rest-resources</module>
 	</modules>
 </project>

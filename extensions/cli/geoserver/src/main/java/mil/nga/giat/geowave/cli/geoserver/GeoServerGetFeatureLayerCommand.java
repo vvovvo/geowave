@@ -9,17 +9,20 @@ import javax.ws.rs.core.Response.Status;
 
 import mil.nga.giat.geowave.core.cli.annotations.GeowaveOperation;
 import mil.nga.giat.geowave.core.cli.api.Command;
+import mil.nga.giat.geowave.core.cli.api.DefaultOperation;
 import mil.nga.giat.geowave.core.cli.api.OperationParams;
 import mil.nga.giat.geowave.core.cli.operations.config.options.ConfigOptions;
 import net.sf.json.JSONObject;
 
+import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
 
-@GeowaveOperation(name = "getfl", parentOperation = GeoServerSection.class)
+@GeowaveOperation(name = "getfl", parentOperation = GeoServerSection.class, restEnabled = GeowaveOperation.RestEnabledType.POST)
 @Parameters(commandDescription = "Get GeoServer feature layer info")
-public class GeoServerGetFeatureLayerCommand implements
+public class GeoServerGetFeatureLayerCommand extends
+		DefaultOperation<String> implements
 		Command
 {
 	private GeoServerRestClient geoserverClient = null;
@@ -57,19 +60,22 @@ public class GeoServerGetFeatureLayerCommand implements
 					"Requires argument: <layer name>");
 		}
 
+		JCommander.getConsole().println(
+				computeResults(params));
+	}
+
+	@Override
+	protected String computeResults(
+			OperationParams params )
+			throws Exception {
 		layerName = parameters.get(0);
 
 		Response getLayerResponse = geoserverClient.getFeatureLayer(layerName);
 
 		if (getLayerResponse.getStatus() == Status.OK.getStatusCode()) {
-			System.out.println("\nGeoServer layer info for '" + layerName + "':");
-
 			JSONObject jsonResponse = JSONObject.fromObject(getLayerResponse.getEntity());
-			System.out.println(jsonResponse.toString(2));
+			return "\nGeoServer layer info for '" + layerName + "': " + jsonResponse.toString(2);
 		}
-		else {
-			System.err.println("Error getting GeoServer layer info for '" + layerName + "'; code = "
-					+ getLayerResponse.getStatus());
-		}
+		return "Error getting GeoServer layer info for '" + layerName + "'; code = " + getLayerResponse.getStatus();
 	}
 }

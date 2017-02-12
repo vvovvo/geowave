@@ -9,17 +9,20 @@ import javax.ws.rs.core.Response.Status;
 
 import mil.nga.giat.geowave.core.cli.annotations.GeowaveOperation;
 import mil.nga.giat.geowave.core.cli.api.Command;
+import mil.nga.giat.geowave.core.cli.api.DefaultOperation;
 import mil.nga.giat.geowave.core.cli.api.OperationParams;
 import mil.nga.giat.geowave.core.cli.operations.config.options.ConfigOptions;
 import net.sf.json.JSONObject;
 
+import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
 
-@GeowaveOperation(name = "getcv", parentOperation = GeoServerSection.class)
+@GeowaveOperation(name = "getcv", parentOperation = GeoServerSection.class, restEnabled = GeowaveOperation.RestEnabledType.POST)
 @Parameters(commandDescription = "Get a GeoServer coverage's info")
-public class GeoServerGetCoverageCommand implements
+public class GeoServerGetCoverageCommand extends
+		DefaultOperation<String> implements
 		Command
 {
 	private GeoServerRestClient geoserverClient = null;
@@ -64,6 +67,14 @@ public class GeoServerGetCoverageCommand implements
 	public void execute(
 			OperationParams params )
 			throws Exception {
+		JCommander.getConsole().println(
+				computeResults(params));
+	}
+
+	@Override
+	protected String computeResults(
+			OperationParams params )
+			throws Exception {
 		if (parameters.size() != 1) {
 			throw new ParameterException(
 					"Requires argument: <coverage name>");
@@ -81,14 +92,9 @@ public class GeoServerGetCoverageCommand implements
 				cvgName);
 
 		if (getCvgResponse.getStatus() == Status.OK.getStatusCode()) {
-			System.out.println("\nGeoServer coverage info for '" + cvgName + "':");
-
 			JSONObject jsonResponse = JSONObject.fromObject(getCvgResponse.getEntity());
-			System.out.println(jsonResponse.toString(2));
+			return "\nGeoServer coverage info for '" + cvgName + "': " + jsonResponse.toString(2);
 		}
-		else {
-			System.err.println("Error getting GeoServer coverage info for " + cvgName + "; code = "
-					+ getCvgResponse.getStatus());
-		}
+		return "Error getting GeoServer coverage info for " + cvgName + "; code = " + getCvgResponse.getStatus();
 	}
 }

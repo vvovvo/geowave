@@ -6,9 +6,19 @@ import mil.nga.giat.geowave.core.cli.annotations.GeowaveOperation;
 import mil.nga.giat.geowave.core.cli.api.Command;
 import mil.nga.giat.geowave.core.cli.api.OperationParams;
 import mil.nga.giat.geowave.core.cli.operations.config.ConfigSection;
+import mil.nga.giat.geowave.core.cli.operations.config.options.ConfigOptions;
+import mil.nga.giat.geowave.core.cli.parser.ManualOperationParams;
 import mil.nga.giat.geowave.core.store.operations.remote.options.DataStorePluginOptions;
 
-@GeowaveOperation(name = "rmstore", parentOperation = ConfigSection.class)
+import java.io.File;
+
+import org.restlet.data.Form;
+import org.restlet.representation.Representation;
+import org.restlet.data.Status;
+import org.restlet.resource.Post;
+import static mil.nga.giat.geowave.core.cli.annotations.GeowaveOperation.RestEnabledType.*;
+
+@GeowaveOperation(name = "rmstore", parentOperation = ConfigSection.class, restEnabled = POST)
 @Parameters(commandDescription = "Remove store from Geowave configuration")
 public class RemoveStoreCommand extends
 		AbstractRemoveCommand implements
@@ -16,14 +26,18 @@ public class RemoveStoreCommand extends
 {
 
 	@Override
-	public void execute(
+	public Void computeResults(
 			OperationParams params ) {
 
 		// Search for properties relevant to the given name
-		String pattern = DataStorePluginOptions.getStoreNamespace(getEntryName());
-		super.execute(
-				params,
-				pattern);
+		pattern = DataStorePluginOptions.getStoreNamespace(getEntryName());
+		return super.computeResults(params);
 
+	}
+
+	@Override
+	public void execute(
+			OperationParams params ) {
+		computeResults(params);
 	}
 }

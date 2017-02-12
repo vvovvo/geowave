@@ -25,7 +25,7 @@ import mil.nga.giat.geowave.core.store.adapter.statistics.DataStatisticsStore;
 import mil.nga.giat.geowave.core.store.operations.remote.options.DataStorePluginOptions;
 import mil.nga.giat.geowave.core.store.operations.remote.options.StatsCommandLineOptions;
 
-@GeowaveOperation(name = "liststats", parentOperation = RemoteSection.class)
+@GeowaveOperation(name = "liststats", parentOperation = RemoteSection.class, restEnabled = GeowaveOperation.RestEnabledType.POST)
 @Parameters(commandDescription = "Print statistics of an existing GeoWave dataset to standard output.  ")
 public class ListStatsCommand extends
 		AbstractStatsCommand implements
@@ -39,18 +39,8 @@ public class ListStatsCommand extends
 
 	@Override
 	public void execute(
-			OperationParams params )
-			throws ParameterException {
-
-		// Ensure we have all the required arguments
-		if (parameters.size() < 1) {
-			throw new ParameterException(
-					"Requires arguments: <store name> [<adapterId>]");
-		}
-
-		super.run(
-				params,
-				parameters);
+			OperationParams params ) {
+		computeResults(params);
 	}
 
 	@Override
@@ -136,6 +126,21 @@ public class ListStatsCommand extends
 		if (adapterName != null) {
 			this.parameters.add(adapterName);
 		}
+	}
+
+	@Override
+	protected Void computeResults(
+			OperationParams params ) {
+		// Ensure we have all the required arguments
+		if (parameters.size() < 1) {
+			throw new ParameterException(
+					"Requires arguments: <store name> [<adapterId>]");
+		}
+
+		super.run(
+				params,
+				parameters);
+		return null;
 	}
 
 }

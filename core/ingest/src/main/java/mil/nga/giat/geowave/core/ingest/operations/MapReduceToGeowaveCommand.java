@@ -12,6 +12,7 @@ import com.beust.jcommander.ParametersDelegate;
 
 import mil.nga.giat.geowave.core.cli.annotations.GeowaveOperation;
 import mil.nga.giat.geowave.core.cli.api.Command;
+import mil.nga.giat.geowave.core.cli.api.DefaultOperation;
 import mil.nga.giat.geowave.core.cli.api.OperationParams;
 import mil.nga.giat.geowave.core.cli.operations.config.options.ConfigOptions;
 import mil.nga.giat.geowave.core.ingest.hdfs.mapreduce.IngestFromHdfsDriver;
@@ -25,9 +26,10 @@ import mil.nga.giat.geowave.core.store.operations.remote.options.IndexPluginOpti
 import mil.nga.giat.geowave.core.store.operations.remote.options.StoreLoader;
 import mil.nga.giat.geowave.core.store.operations.remote.options.VisibilityOptions;
 
-@GeowaveOperation(name = "mrToGW", parentOperation = IngestSection.class)
+@GeowaveOperation(name = "mrToGW", parentOperation = IngestSection.class, restEnabled = GeowaveOperation.RestEnabledType.POST)
 @Parameters(commandDescription = "Ingest supported files that already exist in HDFS")
-public class MapReduceToGeowaveCommand implements
+public class MapReduceToGeowaveCommand extends
+		DefaultOperation<Void> implements
 		Command
 {
 
@@ -67,10 +69,13 @@ public class MapReduceToGeowaveCommand implements
 
 	/**
 	 * Prep the driver & run the operation.
+	 * 
+	 * @throws Exception
 	 */
 	@Override
 	public void execute(
-			OperationParams params ) {
+			OperationParams params )
+			throws Exception {
 
 		// Ensure we have all the required arguments
 		if (parameters.size() != 4) {
@@ -78,65 +83,7 @@ public class MapReduceToGeowaveCommand implements
 					"Requires arguments: <hdfs host:port> <path to base directory to write to> <store name> <comma delimited index/group list>");
 		}
 
-		if (mapReduceOptions.getJobTrackerOrResourceManagerHostPort() == null) {
-			throw new ParameterException(
-					"Requires job tracker or resource manager option (try geowave help <command>...)");
-		}
-
-		String hdfsHostPort = parameters.get(0);
-		String basePath = parameters.get(1);
-		String inputStoreName = parameters.get(2);
-		String indexList = parameters.get(3);
-
-		// Ensures that the url starts with hdfs://
-		if (!hdfsHostPort.contains("://")) {
-			hdfsHostPort = "hdfs://" + hdfsHostPort;
-		}
-
-		// Config file
-		File configFile = (File) params.getContext().get(
-				ConfigOptions.PROPERTIES_FILE_CONTEXT);
-
-		// Attempt to load input store.
-		if (inputStoreOptions == null) {
-			StoreLoader inputStoreLoader = new StoreLoader(
-					inputStoreName);
-			if (!inputStoreLoader.loadFromConfig(configFile)) {
-				throw new ParameterException(
-						"Cannot find store name: " + inputStoreLoader.getStoreName());
-			}
-			inputStoreOptions = inputStoreLoader.getDataStorePlugin();
-		}
-
-		// Load the Indexes
-		if (inputIndexOptions == null) {
-			IndexLoader indexLoader = new IndexLoader(
-					indexList);
-			if (!indexLoader.loadFromConfig(configFile)) {
-				throw new ParameterException(
-						"Cannot find index(s) by name: " + indexList);
-			}
-			inputIndexOptions = indexLoader.getLoadedIndexes();
-		}
-
-		// Ingest Plugins
-		Map<String, IngestFromHdfsPlugin<?, ?>> ingestPlugins = pluginFormats.createHdfsIngestPlugins();
-
-		// Driver
-		IngestFromHdfsDriver driver = new IngestFromHdfsDriver(
-				inputStoreOptions,
-				inputIndexOptions,
-				ingestOptions,
-				mapReduceOptions,
-				ingestPlugins,
-				hdfsHostPort,
-				basePath);
-
-		// Execute
-		if (!driver.runOperation()) {
-			throw new RuntimeException(
-					"Ingest failed to execute");
-		}
+		computeResults(params);
 	}
 
 	public List<String> getParameters() {
@@ -207,5 +154,71 @@ public class MapReduceToGeowaveCommand implements
 	public void setInputIndexOptions(
 			List<IndexPluginOptions> inputIndexOptions ) {
 		this.inputIndexOptions = inputIndexOptions;
+	}
+
+	@Override
+	protected Void computeResults(
+			OperationParams params )
+			throws Exception {
+		if (mapReduceOptions.getJobTrackerOrResourceManagerHostPort() == null) {
+			throw new ParameterException(
+					"Requires job tracker or resource manager option (try geowave help <command>...)");
+		}
+
+		String hdfsHostPort = parameters.get(0);
+		String basePath = parameters.get(1);
+		String inputStoreName = parameters.get(2);
+		String indexList = parameters.get(3);
+
+		// Ensures that the url starts with hdfs://
+		if (!hdfsHostPort.contains("://")) {
+			hdfsHostPort = "hdfs://" + hdfsHostPort;
+		}
+
+		// Config file
+		File configFile = (File) params.getContext().get(
+				ConfigOptions.PROPERTIES_FILE_CONTEXT);
+
+		// Attempt to load input store.
+		if (inputStoreOptions == null) {
+			StoreLoader inputStoreLoader = new StoreLoader(
+					inputStoreName);
+			if (!inputStoreLoader.loadFromConfig(configFile)) {
+				throw new ParameterException(
+						"Cannot find store name: " + inputStoreLoader.getStoreName());
+			}
+			inputStoreOptions = inputStoreLoader.getDataStorePlugin();
+		}
+
+		// Load the Indexes
+		if (inputIndexOptions == null) {
+			IndexLoader indexLoader = new IndexLoader(
+					indexList);
+			if (!indexLoader.loadFromConfig(configFile)) {
+				throw new ParameterException(
+						"Cannot find index(s) by name: " + indexList);
+			}
+			inputIndexOptions = indexLoader.getLoadedIndexes();
+		}
+
+		// Ingest Plugins
+		Map<String, IngestFromHdfsPlugin<?, ?>> ingestPlugins = pluginFormats.createHdfsIngestPlugins();
+
+		// Driver
+		IngestFromHdfsDriver driver = new IngestFromHdfsDriver(
+				inputStoreOptions,
+				inputIndexOptions,
+				ingestOptions,
+				mapReduceOptions,
+				ingestPlugins,
+				hdfsHostPort,
+				basePath);
+
+		// Execute
+		if (!driver.runOperation()) {
+			throw new RuntimeException(
+					"Ingest failed to execute");
+		}
+		return null;
 	}
 }

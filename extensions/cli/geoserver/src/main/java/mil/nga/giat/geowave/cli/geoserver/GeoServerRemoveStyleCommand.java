@@ -9,16 +9,19 @@ import javax.ws.rs.core.Response.Status;
 
 import mil.nga.giat.geowave.core.cli.annotations.GeowaveOperation;
 import mil.nga.giat.geowave.core.cli.api.Command;
+import mil.nga.giat.geowave.core.cli.api.DefaultOperation;
 import mil.nga.giat.geowave.core.cli.api.OperationParams;
 import mil.nga.giat.geowave.core.cli.operations.config.options.ConfigOptions;
 
+import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
 
-@GeowaveOperation(name = "rmstyle", parentOperation = GeoServerSection.class)
+@GeowaveOperation(name = "rmstyle", parentOperation = GeoServerSection.class, restEnabled = GeowaveOperation.RestEnabledType.POST)
 @Parameters(commandDescription = "Remove GeoServer Style")
-public class GeoServerRemoveStyleCommand implements
+public class GeoServerRemoveStyleCommand extends
+		DefaultOperation<String> implements
 		Command
 {
 	private GeoServerRestClient geoserverClient = null;
@@ -56,16 +59,21 @@ public class GeoServerRemoveStyleCommand implements
 					"Requires argument: <style name>");
 		}
 
+		JCommander.getConsole().println(
+				computeResults(params));
+	}
+
+	@Override
+	protected String computeResults(
+			OperationParams params )
+			throws Exception {
 		styleName = parameters.get(0);
 
 		Response deleteStyleResponse = geoserverClient.deleteStyle(styleName);
 
 		if (deleteStyleResponse.getStatus() == Status.OK.getStatusCode()) {
-			System.out.println("Delete style '" + styleName + "' on GeoServer: OK");
+			return "Delete style '" + styleName + "' on GeoServer: OK";
 		}
-		else {
-			System.err.println("Error deleting style '" + styleName + "' on GeoServer; code = "
-					+ deleteStyleResponse.getStatus());
-		}
+		return "Error deleting style '" + styleName + "' on GeoServer; code = " + deleteStyleResponse.getStatus();
 	}
 }
