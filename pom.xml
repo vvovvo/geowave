@@ -51,14 +51,13 @@
 		<hbase.scope>compile</hbase.scope>
 		<hadoop.scope>compile</hadoop.scope>
 		<zookeeper.version>3.4.6</zookeeper.version>
-		<!-- <jersey.version>2.22.2</jersey.version> -->
-		<jersey.version>2.14</jersey.version>
+		<jersey.version>2.22.2</jersey.version>
 		<kafka.artifact>kafka_2.11</kafka.artifact>
 		<kafka.version>0.8.2.1</kafka.version>
 		<snappy.version>1.0.5</snappy.version>
 		<jcommander.version>1.48</jcommander.version>
 		<jackson.version>1.9.13</jackson.version>
-		<!-- <fasterxml.jackson.version>2.6.5</fasterxml.jackson.version> -->
+		<fasterxml.jackson.version>2.6.5</fasterxml.jackson.version>
 		<spring-security.version>4.0.4.RELEASE</spring-security.version>
 		<slf4j.version>1.7.21</slf4j.version>
 		<junit.version>4.11</junit.version>
@@ -401,7 +400,6 @@
 				<artifactId>jackson-core-asl</artifactId>
 				<version>${jackson.version}</version>
 			</dependency>
-			<!-- 
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
 				<artifactId>jackson-annotations</artifactId>
@@ -417,7 +415,6 @@
 				<artifactId>jackson-core</artifactId>
 				<version>${fasterxml.jackson.version}</version>
 			</dependency>
-			-->
 			<dependency>
 				<groupId>org.springframework.security</groupId>
 				<artifactId>spring-security-core</artifactId>
