@@ -26,6 +26,7 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.accumulo.core.util.format.Formatter;
+import org.apache.accumulo.core.util.format.FormatterConfig;
 import org.apache.hadoop.io.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +41,7 @@ public class PersistentDataFormatter implements
 	}
 
 	private Iterator<Entry<Key, Value>> si;
-	private boolean doTimestamps;
+	private FormatterConfig config;
 	private static final ThreadLocal<DateFormat> formatter = new ThreadLocal<DateFormat>() {
 		@Override
 		protected DateFormat initialValue() {
@@ -75,10 +76,10 @@ public class PersistentDataFormatter implements
 	@Override
 	public void initialize(
 			Iterable<Entry<Key, Value>> scanner,
-			boolean printTimestamps ) {
+			FormatterConfig config ) {
 		checkState(false);
 		si = scanner.iterator();
-		doTimestamps = printTimestamps;
+		this.config = config;
 	}
 
 	public boolean hasNext() {
@@ -89,8 +90,8 @@ public class PersistentDataFormatter implements
 	public String next() {
 		DateFormat timestampFormat = null;
 
-		if (doTimestamps) {
-			timestampFormat = formatter.get();
+		if (config != null && config.willPrintTimestamps()) {
+			timestampFormat = config.getDateFormatSupplier().get();
 		}
 
 		return next(timestampFormat);
@@ -289,10 +290,6 @@ public class PersistentDataFormatter implements
 
 	public Iterator<Entry<Key, Value>> getScannerIterator() {
 		return si;
-	}
-
-	protected boolean isDoTimestamps() {
-		return doTimestamps;
 	}
 
 }
