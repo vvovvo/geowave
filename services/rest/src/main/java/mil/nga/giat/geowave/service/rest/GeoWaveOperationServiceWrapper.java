@@ -310,8 +310,9 @@ public class GeoWaveOperationServiceWrapper<T> extends
 
 			}
 			catch (SQLException e) {
-				System.out.println(e.getMessage());
-			}
+				LOGGER.error("Error SQLException: ",
+								e.getMessage());			
+				}
 		}
 
 		try {
