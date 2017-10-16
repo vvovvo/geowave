@@ -21,7 +21,9 @@ import mil.nga.giat.geowave.mapreduce.input.GeoWaveInputKey;
 
 public class GeowaveRDDExample
 {
-	public static void main(
+	public GeowaveRDDExample() {}
+	
+	public void loadRddFromStore(
 			final String[] args ) {
 		if (args.length < 1) {
 			System.err.println("Missing required arg 'storename'");
