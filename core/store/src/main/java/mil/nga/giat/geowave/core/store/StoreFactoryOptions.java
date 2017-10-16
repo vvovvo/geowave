@@ -108,6 +108,8 @@ abstract public class StoreFactoryOptions
 										echoEnabled);
 								String strPassword = new String(
 										password);
+								password = null;
+
 								if (!"".equals(strPassword.trim())) {
 									value = (strPassword != null && !"".equals(strPassword.trim())) ? strPassword
 											.trim() : null;
