@@ -37,7 +37,7 @@ public class SPIServiceRegistryTest
 {
 
 	@Test
-	public void test()
+	public final void test()
 			throws FileSystemException,
 			MalformedURLException {
 		DefaultFileSystemManager fsManager = new DefaultFileSystemManager();
