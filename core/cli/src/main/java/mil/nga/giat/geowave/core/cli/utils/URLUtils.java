@@ -28,13 +28,8 @@ public class URLUtils
 			if (isValidURL(url)) {
 				return url;
 			}
-			boolean valid = false;
-			for (String scheme : getSchemes()) {
-				if (scheme.toLowerCase().startsWith(
-						scheme + "://")) {
-					valid = true;
-				}
-			}
+			boolean valid = isValidScheme(url);
+
 			if (!valid) {
 				url = HTTP + "://" + url;
 			}
@@ -51,8 +46,10 @@ public class URLUtils
 						targetURL.getHost(),
 						targetURL.getDefaultPort(),
 						// HP Fortify "Path Traversal" False Positive
-						// User input is not used at any point to determine the file path. 
-						// The information is hard code in a single location and accessible 
+						// User input is not used at any point to determine the
+						// file path.
+						// The information is hard code in a single location and
+						// accessible
 						// though this method.
 						targetURL.getFile());
 			}
@@ -64,8 +61,10 @@ public class URLUtils
 						targetURL.getHost(),
 						targetURL.getPort(),
 						// HP Fortify "Path Traversal" False Positive
-						// User input is not used at any point to determine the file path. 
-						// The information is hard code in a single location and accessible 
+						// User input is not used at any point to determine the
+						// file path.
+						// The information is hard code in a single location and
+						// accessible
 						// though this method.
 						targetURL.getFile());
 			}
@@ -99,6 +98,26 @@ public class URLUtils
 			return false;
 		}
 		return true;
+	}
+
+	private static boolean isValidScheme(
+			String url ) {
+		int ix = url.indexOf("://");
+		if (ix == -1) {
+			return false;
+		}
+
+		String inputScheme = url.substring(
+				0,
+				ix);
+
+		for (String scheme : getSchemes()) {
+			if (inputScheme.equalsIgnoreCase(scheme)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**

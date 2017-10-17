@@ -17,6 +17,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -105,13 +106,13 @@ public class GeoServerRestClient
 		if (webTarget == null) {
 			String url = getConfig().getUrl();
 			if (url != null) {
-				url = url.trim();
+				url = url.trim().toLowerCase(Locale.ROOT);
 				Client client = null;
-				if (url.toLowerCase().startsWith(
+				if (url.startsWith(
 						"http://")) {
 					client = ClientBuilder.newClient();
 				}
-				else if (url.toLowerCase().startsWith(
+				else if (url.startsWith(
 						"https://")) {
 					SslConfigurator sslConfig = SslConfigurator.newInstance();
 					if (getConfig().getGsConfigProperties() != null) {

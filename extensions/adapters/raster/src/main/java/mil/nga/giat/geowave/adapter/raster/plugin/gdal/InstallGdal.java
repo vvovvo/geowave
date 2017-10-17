@@ -16,6 +16,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.util.Locale;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -166,7 +167,8 @@ public class InstallGdal
 	private static boolean isWindows() {
 		final String name = System.getProperty(
 				"os.name").toLowerCase();
-		return name.startsWith("windows");
+		String OS = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH);
+		return (OS.indexOf("win") > -1);
 	}
 
 }
