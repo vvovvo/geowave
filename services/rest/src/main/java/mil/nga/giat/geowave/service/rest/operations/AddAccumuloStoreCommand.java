@@ -141,7 +141,7 @@ public class AddAccumuloStoreCommand extends
 
 	@Override
 	public String getPath() {
-		return "config/addstore/accumulo";
+		return "v0/config/addstore/accumulo";
 	}
 
 	public void setParameters(
