@@ -18,7 +18,6 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.util.Locale;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.archiver.tar.TarGZipUnArchiver;
 import org.codehaus.plexus.logging.console.ConsoleLogger;
@@ -165,9 +164,10 @@ public class InstallGdal
 	}
 
 	private static boolean isWindows() {
-		final String name = System.getProperty(
-				"os.name").toLowerCase();
-		String OS = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH);
+		String OS = System.getProperty(
+				"os.name",
+				"generic").toLowerCase(
+				Locale.ENGLISH);
 		return (OS.indexOf("win") > -1);
 	}
 

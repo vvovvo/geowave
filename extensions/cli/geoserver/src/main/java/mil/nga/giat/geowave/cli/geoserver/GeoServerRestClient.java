@@ -106,14 +106,13 @@ public class GeoServerRestClient
 		if (webTarget == null) {
 			String url = getConfig().getUrl();
 			if (url != null) {
-				url = url.trim().toLowerCase(Locale.ROOT);
+				url = url.trim().toLowerCase(
+						Locale.ROOT);
 				Client client = null;
-				if (url.startsWith(
-						"http://")) {
+				if (url.startsWith("http://")) {
 					client = ClientBuilder.newClient();
 				}
-				else if (url.startsWith(
-						"https://")) {
+				else if (url.startsWith("https://")) {
 					SslConfigurator sslConfig = SslConfigurator.newInstance();
 					if (getConfig().getGsConfigProperties() != null) {
 						loadSSLConfigurations(
