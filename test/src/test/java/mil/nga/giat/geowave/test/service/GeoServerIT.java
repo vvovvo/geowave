@@ -341,7 +341,7 @@ public class GeoServerIT
 				postParameters,
 				paramTuples);
 
-		command.setEntity(new UrlEncodedFormEntity(
+		command.setEntity(new UrlEncodedFormEntity( // HPFortify FP: Integration Test is not subject to CR/LF injection into headers
 				postParameters));
 
 		command.setHeader(
@@ -518,7 +518,7 @@ public class GeoServerIT
 			final HttpPost command = createWFSTransaction(
 					httpclient,
 					"1.1.0");
-			command.setEntity(new StringEntity(
+			command.setEntity(new StringEntity( // HPFortify FP: Integration Test is not subject to CR/LF injection into headers
 					update));
 			final LinkedList<HttpResponse> capturedResponse = new LinkedList<HttpResponse>();
 			run(
