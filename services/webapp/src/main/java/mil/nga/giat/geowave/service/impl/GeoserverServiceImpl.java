@@ -212,7 +212,8 @@ public class GeoserverServiceImpl implements
 	@Path("/workspaces")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response createWorkspace(
-			final FormDataMultiPart multiPart ) {
+			final FormDataMultiPart multiPart ) { 	// HPFortify - "Mass Assignment: Insecure Binder Configuration"
+													// FP: multiPart input is well-managed
 
 		final String workspace = multiPart.getField(
 				"workspace").getValue();
@@ -322,7 +323,8 @@ public class GeoserverServiceImpl implements
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	public Response publishStyle(
-			final FormDataMultiPart multiPart ) {
+			final FormDataMultiPart multiPart ) { 	// HPFortify - "Mass Assignment: Insecure Binder Configuration"
+													// FP: multiPart input is well-managed
 
 		final Collection<FormDataBodyPart> fileFields = multiPart.getFields("file");
 		if (fileFields == null) {
@@ -526,7 +528,8 @@ public class GeoserverServiceImpl implements
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	public Response publishDatastore(
-			final FormDataMultiPart multiPart ) {
+			final FormDataMultiPart multiPart ) { 	// HPFortify - "Mass Assignment: Insecure Binder Configuration"
+													// FP: multiPart input is well-managed
 		final Map<String, List<FormDataBodyPart>> fieldMap = multiPart.getFields();
 
 		String lockMgmt = "memory";
@@ -875,7 +878,8 @@ public class GeoserverServiceImpl implements
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	public Response publishLayer(
-			final FormDataMultiPart multiPart ) {
+			final FormDataMultiPart multiPart ) { 	// HPFortify - "Mass Assignment: Insecure Binder Configuration"
+													// FP: multiPart input is well-managed
 
 		final String datastore = multiPart.getField(
 				"datastore").getValue();
