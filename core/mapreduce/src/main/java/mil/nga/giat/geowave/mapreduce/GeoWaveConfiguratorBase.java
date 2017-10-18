@@ -488,8 +488,6 @@ public class GeoWaveConfiguratorBase
 		conf.set(
 				"yarn.app.mapreduce.am.staging-dir",
 				"/tmp/hadoop-" + user);
-		conf.set(
-				"hadoop.security.sensitive-config-keys",
-				"");
+
 	}
 }

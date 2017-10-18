@@ -150,6 +150,13 @@ public class GeoWaveOperationServiceWrapper<T> extends
 
 				objValue = Arrays.asList(parameters);
 			}
+			else if (f.getType().isArray()) {
+				final String[] parameters = getFieldValues(
+						form,
+						f.getName());
+
+				objValue = parameters;
+			}
 			else {
 
 				final String strValue = getFieldValue(
