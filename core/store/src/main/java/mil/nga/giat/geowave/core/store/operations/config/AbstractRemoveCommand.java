@@ -48,20 +48,20 @@ public abstract class AbstractRemoveCommand extends
 
 	public Void computeResults(
 			final OperationParams params,
-			final String patternPrefix) {
-			// this ensures we are only exact-matching rather than using the prefix
+			final String patternPrefix ) {
+		// this ensures we are only exact-matching rather than using the prefix
 
 		final String pattern = patternPrefix + ".";
 		final Properties existingProps = getGeoWaveConfigProperties(params);
-		
+
 		// Find properties to remove
 		final Set<String> keysToRemove = new HashSet<String>();
 		for (final String key : existingProps.stringPropertyNames()) {
 			if (key.startsWith(pattern)) {
 				keysToRemove.add(key);
 			}
-		}	
-	
+		}
+
 		// Remove each property.
 		for (final String key : keysToRemove) {
 			existingProps.remove(key);
