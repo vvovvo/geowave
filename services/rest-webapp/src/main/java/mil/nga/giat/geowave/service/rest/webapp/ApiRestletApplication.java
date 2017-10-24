@@ -200,7 +200,8 @@ public class ApiRestletApplication extends
 				// just return the first one
 				return host + ":" + port;
 			}
+			return hostname + ":" + port;
 		}
-		return "http://localhost:8080";
+		return "localhost:8080";
 	}
 }
