@@ -5,7 +5,6 @@ package mil.nga.giat.geowave.datastore.hbase;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.slf4j.Logger;
@@ -24,17 +23,23 @@ import mil.nga.giat.geowave.core.store.metadata.DataStatisticsStoreImpl;
 import mil.nga.giat.geowave.core.store.metadata.IndexStoreImpl;
 import mil.nga.giat.geowave.core.store.query.DistributableQuery;
 import mil.nga.giat.geowave.core.store.query.QueryOptions;
+import mil.nga.giat.geowave.core.store.server.RowMergingAdapterOptionProvider;
+import mil.nga.giat.geowave.core.store.server.ServerOpHelper;
+import mil.nga.giat.geowave.core.store.server.ServerSideOperations;
+import mil.nga.giat.geowave.core.store.util.DataAdapterAndIndexCache;
 import mil.nga.giat.geowave.datastore.hbase.cli.config.HBaseOptions;
-import mil.nga.giat.geowave.datastore.hbase.coprocessors.MergingRegionObserver;
 import mil.nga.giat.geowave.datastore.hbase.index.secondary.HBaseSecondaryIndexDataStore;
 import mil.nga.giat.geowave.datastore.hbase.mapreduce.HBaseSplitsProvider;
 import mil.nga.giat.geowave.datastore.hbase.operations.HBaseOperations;
+import mil.nga.giat.geowave.datastore.hbase.server.RowMergingServerOp;
+import mil.nga.giat.geowave.datastore.hbase.server.RowMergingVisibilityServerOp;
 import mil.nga.giat.geowave.mapreduce.BaseMapReduceDataStore;
 
 public class HBaseDataStore extends
 		BaseMapReduceDataStore
 {
-	private final static Logger LOGGER = LoggerFactory.getLogger(HBaseDataStore.class);
+	private final static Logger LOGGER = LoggerFactory.getLogger(
+			HBaseDataStore.class);
 
 	private final HBaseSplitsProvider splitsProvider = new HBaseSplitsProvider();
 	private final HBaseOperations hbaseOperations;
@@ -79,7 +84,8 @@ public class HBaseDataStore extends
 				operations,
 				options);
 
-		secondaryIndexDataStore.setDataStore(this);
+		secondaryIndexDataStore.setDataStore(
+				this);
 
 		hbaseOperations = operations;
 	}
@@ -88,13 +94,32 @@ public class HBaseDataStore extends
 	protected void initOnIndexWriterCreate(
 			final DataAdapter adapter,
 			final PrimaryIndex index ) {
+		final String indexName = index.getId().getString();
+		final String columnFamily = adapter.getAdapterId().getString();
 		if (adapter instanceof RowMergingDataAdapter) {
-			hbaseOperations.stageMergingAdapterForObserver(
-					index.getId(),
-					adapter.getAdapterId(),
-					((RowMergingDataAdapter) adapter).getTransform(),
-					((RowMergingDataAdapter)adapter).getOptions(null));
+			if (!DataAdapterAndIndexCache.getInstance(
+					RowMergingAdapterOptionProvider.ROW_MERGING_ADAPTER_CACHE_ID).add(
+							adapter.getAdapterId(),
+							indexName)) {
+				if (baseOptions.isCreateTable()) {
+					((HBaseOperations) baseOperations).createTable(
+							index.getId(),
+							adapter.getAdapterId());
+				}
+				((HBaseOperations) baseOperations).ensureServerSideOperationsObserverAttached(
+						index.getId());
+				ServerOpHelper.addServerSideRowMerging(
+						((RowMergingDataAdapter<?, ?>) adapter),
+						(ServerSideOperations) baseOperations,
+						RowMergingServerOp.class.getName(),
+						RowMergingVisibilityServerOp.class.getName(),
+						indexName);
+			}
 		}
+
+		hbaseOperations.verifyOrAddColumnFamily(
+				columnFamily,
+				indexName);
 	}
 
 	@Override
