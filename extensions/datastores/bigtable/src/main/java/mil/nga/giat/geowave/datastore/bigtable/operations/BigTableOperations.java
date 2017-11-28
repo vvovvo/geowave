@@ -22,38 +22,21 @@ import org.apache.hadoop.hbase.client.Scan;
 
 import com.google.cloud.bigtable.hbase.BigtableConfiguration;
 
+import mil.nga.giat.geowave.core.index.ByteArrayId;
 import mil.nga.giat.geowave.datastore.bigtable.operations.config.BigTableOptions;
 import mil.nga.giat.geowave.datastore.hbase.operations.HBaseOperations;
 
 public class BigTableOperations extends
 		HBaseOperations
 {
-
-	public BigTableOperations()
-			throws IOException {
-		this(
-				DEFAULT_TABLE_NAMESPACE);
-	}
-
-	public BigTableOperations(
-			final String geowaveNamespace )
-			throws IOException {
-		this(
-				BigTableOptions.DEFAULT_PROJECT_ID,
-				BigTableOptions.DEFAULT_INSTANCE_ID,
-				geowaveNamespace);
-	}
-
-	public BigTableOperations(
-			final String projectId,
-			final String instanceId,
-			final String geowaveNamespace )
+	public BigTableOperations(final BigTableOptions options )
 			throws IOException {
 		super(
 				getConnection(
-						projectId,
-						instanceId),
-				geowaveNamespace);
+						options.getProjectId(),
+						options.getInstanceId()),
+				options.getGeowaveNamespace(),
+				options.getHBaseOptions());
 	}
 
 	private static Connection getConnection(
@@ -65,9 +48,6 @@ public class BigTableOperations extends
 				instanceId);
 
 		// TODO: Bigtable configgy things? What about connection pooling?
-		config.setBoolean(
-				"hbase.online.schema.update.enable",
-				true);
 
 		return BigtableConfiguration.connect(config);
 	}
@@ -79,13 +59,14 @@ public class BigTableOperations extends
 			String... authorizations )
 			throws IOException {
 
-		if (tableExists(tableName)) {
+		if (indexExists(new ByteArrayId(tableName))) {
 			// TODO Cache locally b/c numerous checks can be expensive
 			return super.getScannedResults(
 					scanner,
 					tableName,
 					authorizations);
 		}
+		
 		return new ResultScanner() {
 			@Override
 			public Iterator<Result> iterator() {
@@ -114,9 +95,7 @@ public class BigTableOperations extends
 			final BigTableOptions options )
 			throws IOException {
 		return new BigTableOperations(
-				options.getProjectId(),
-				options.getInstanceId(),
-				options.getGeowaveNamespace());
+				options);
 	}
 
 }

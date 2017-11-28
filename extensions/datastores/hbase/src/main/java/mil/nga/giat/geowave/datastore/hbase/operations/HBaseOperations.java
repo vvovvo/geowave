@@ -140,6 +140,21 @@ public class HBaseOperations implements
 
 		schemaUpdateEnabled = conn.getConfiguration().getBoolean(
 				"hbase.online.schema.update.enable",
+				true);
+
+		this.options = options;
+	}
+
+	public HBaseOperations(
+			Connection connection,
+			String geowaveNamespace,
+			final HBaseOptions options ) {
+		this.conn = connection;
+		
+		tableNamespace = geowaveNamespace;
+
+		schemaUpdateEnabled = conn.getConfiguration().getBoolean(
+				"hbase.online.schema.update.enable",
 				false);
 
 		this.options = options;
