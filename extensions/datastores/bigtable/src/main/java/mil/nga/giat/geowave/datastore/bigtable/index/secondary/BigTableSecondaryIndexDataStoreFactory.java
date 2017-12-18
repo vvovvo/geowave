@@ -39,7 +39,7 @@ public class BigTableSecondaryIndexDataStoreFactory extends
 			throw new AssertionError(
 					"Expected " + BigTableOptions.class.getSimpleName());
 		}
-		
+
 		final DataStoreOperations bigtableOperations = helper.createOperations(options);
 
 		return new HBaseSecondaryIndexDataStore(

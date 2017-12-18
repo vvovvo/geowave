@@ -29,7 +29,8 @@ import mil.nga.giat.geowave.datastore.hbase.operations.HBaseOperations;
 public class BigTableOperations extends
 		HBaseOperations
 {
-	public BigTableOperations(final BigTableOptions options )
+	public BigTableOperations(
+			final BigTableOptions options )
 			throws IOException {
 		super(
 				getConnection(
@@ -59,14 +60,15 @@ public class BigTableOperations extends
 			String... authorizations )
 			throws IOException {
 
-		if (indexExists(new ByteArrayId(tableName))) {
+		if (indexExists(new ByteArrayId(
+				tableName))) {
 			// TODO Cache locally b/c numerous checks can be expensive
 			return super.getScannedResults(
 					scanner,
 					tableName,
 					authorizations);
 		}
-		
+
 		return new ResultScanner() {
 			@Override
 			public Iterator<Result> iterator() {

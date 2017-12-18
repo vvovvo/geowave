@@ -43,7 +43,7 @@ public class BigTableDataStoreFactory extends
 		final DataStoreOperations bigtableOperations = helper.createOperations(options);
 
 		return new HBaseDataStore(
-				(BigTableOperations)bigtableOperations,
+				(BigTableOperations) bigtableOperations,
 				((BigTableOptions) options).getHBaseOptions());
 	}
 }

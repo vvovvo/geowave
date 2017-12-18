@@ -150,7 +150,7 @@ public class HBaseOperations implements
 			String geowaveNamespace,
 			final HBaseOptions options ) {
 		this.conn = connection;
-		
+
 		tableNamespace = geowaveNamespace;
 
 		schemaUpdateEnabled = conn.getConfiguration().getBoolean(
