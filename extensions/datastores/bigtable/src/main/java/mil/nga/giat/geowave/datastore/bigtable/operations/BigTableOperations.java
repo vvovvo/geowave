@@ -14,15 +14,13 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Iterator;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Scan;
 
-import com.google.cloud.bigtable.hbase.BigtableConfiguration;
-
 import mil.nga.giat.geowave.core.index.ByteArrayId;
+import mil.nga.giat.geowave.datastore.bigtable.BigTableConnectionPool;
 import mil.nga.giat.geowave.datastore.bigtable.operations.config.BigTableOptions;
 import mil.nga.giat.geowave.datastore.hbase.operations.HBaseOperations;
 
@@ -33,24 +31,20 @@ public class BigTableOperations extends
 			final BigTableOptions options )
 			throws IOException {
 		super(
-				getConnection(
+				BigTableConnectionPool.getInstance().getConnection(
 						options.getProjectId(),
 						options.getInstanceId()),
 				options.getGeowaveNamespace(),
 				options.getHBaseOptions());
 	}
-
-	private static Connection getConnection(
-			final String projectId,
-			final String instanceId ) {
-
-		final Configuration config = BigtableConfiguration.configure(
-				projectId,
-				instanceId);
-
-		// TODO: Bigtable configgy things? What about connection pooling?
-
-		return BigtableConfiguration.connect(config);
+	
+	@Override
+	protected boolean verifyColumnFamilies(
+			final String[] columnFamilies,
+			final TableName tableName,
+			final boolean addIfNotExist )
+			throws IOException {
+		return true;
 	}
 
 	@Override
@@ -60,8 +54,9 @@ public class BigTableOperations extends
 			String... authorizations )
 			throws IOException {
 
-		if (indexExists(new ByteArrayId(
-				tableName))) {
+		if (indexExists(
+				new ByteArrayId(
+						tableName))) {
 			// TODO Cache locally b/c numerous checks can be expensive
 			return super.getScannedResults(
 					scanner,

@@ -34,11 +34,13 @@ public class BigtableStoreTestEnvironment extends
 		return singletonInstance;
 	}
 
-	private final static Logger LOGGER = LoggerFactory.getLogger(BigtableStoreTestEnvironment.class);
+	private final static Logger LOGGER = LoggerFactory.getLogger(
+			BigtableStoreTestEnvironment.class);
 
 	protected BigtableEmulator emulator;
 
-	// Set to false if you're running an emulator elsewhere
+	// Set to false if you're running an emulator elsewhere.
+	// To run externally, see https://cloud.google.com/bigtable/docs/emulator
 	private static final boolean internalEmulator = false;
 
 	private BigtableStoreTestEnvironment() {}
@@ -77,14 +79,19 @@ public class BigtableStoreTestEnvironment extends
 			}
 
 			if (!emulator.start()) {
-				LOGGER.error("Bigtable emulator startup failed");
+				LOGGER.error(
+						"Bigtable emulator startup failed");
 			}
 		}
 	}
 
 	@Override
 	public void tearDown() {
-		emulator.stop();
+		if (internalEmulator) {
+			if (emulator != null) {
+				emulator.stop();
+			}
+		}
 	}
 
 	@Override
