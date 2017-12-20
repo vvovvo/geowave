@@ -12,9 +12,9 @@ package mil.nga.giat.geowave.datastore.bigtable.operations;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 
-import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Scan;
@@ -27,6 +27,8 @@ import mil.nga.giat.geowave.datastore.hbase.operations.HBaseOperations;
 public class BigTableOperations extends
 		HBaseOperations
 {
+	private HashSet<String> tableCache = new HashSet();
+
 	public BigTableOperations(
 			final BigTableOptions options )
 			throws IOException {
@@ -37,15 +39,6 @@ public class BigTableOperations extends
 				options.getGeowaveNamespace(),
 				options.getHBaseOptions());
 	}
-	
-	@Override
-	protected boolean verifyColumnFamilies(
-			final String[] columnFamilies,
-			final TableName tableName,
-			final boolean addIfNotExist )
-			throws IOException {
-		return true;
-	}
 
 	@Override
 	public ResultScanner getScannedResults(
@@ -54,16 +47,28 @@ public class BigTableOperations extends
 			String... authorizations )
 			throws IOException {
 
-		if (indexExists(
-				new ByteArrayId(
-						tableName))) {
-			// TODO Cache locally b/c numerous checks can be expensive
+		// Check the local cache
+		boolean tableAvailable = tableCache.contains(tableName);
+
+		// No local cache. Check the server and update cache
+		if (!tableAvailable) {
+			if (indexExists(new ByteArrayId(
+					tableName))) {
+				tableAvailable = true;
+
+				tableCache.add(tableName);
+			}
+		}
+
+		// Get the results if available
+		if (tableAvailable) {
 			return super.getScannedResults(
 					scanner,
 					tableName,
 					authorizations);
 		}
 
+		// Otherwise, return empty results
 		return new ResultScanner() {
 			@Override
 			public Iterator<Result> iterator() {

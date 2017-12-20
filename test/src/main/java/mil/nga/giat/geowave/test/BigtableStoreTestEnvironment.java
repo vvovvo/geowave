@@ -34,8 +34,7 @@ public class BigtableStoreTestEnvironment extends
 		return singletonInstance;
 	}
 
-	private final static Logger LOGGER = LoggerFactory.getLogger(
-			BigtableStoreTestEnvironment.class);
+	private final static Logger LOGGER = LoggerFactory.getLogger(BigtableStoreTestEnvironment.class);
 
 	protected BigtableEmulator emulator;
 
@@ -65,7 +64,7 @@ public class BigtableStoreTestEnvironment extends
 		EnvironmentVariables environmentVariables = new EnvironmentVariables();
 		environmentVariables.set(
 				"BIGTABLE_EMULATOR_HOST",
-				"127.0.0.1:8086");
+				"127.0.0.1:8128");
 
 		if (internalEmulator) {
 			if (emulator == null) {
@@ -79,8 +78,7 @@ public class BigtableStoreTestEnvironment extends
 			}
 
 			if (!emulator.start()) {
-				LOGGER.error(
-						"Bigtable emulator startup failed");
+				LOGGER.error("Bigtable emulator startup failed");
 			}
 		}
 	}
