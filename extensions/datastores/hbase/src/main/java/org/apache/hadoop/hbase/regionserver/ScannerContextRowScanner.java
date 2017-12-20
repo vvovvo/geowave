@@ -54,8 +54,7 @@ public class ScannerContextRowScanner implements
 			return Collections.EMPTY_LIST;
 		}
 		scannerContext.clearProgress();
-		scannerContext.setScannerState(
-				NextState.MORE_VALUES);
+		scannerContext.setScannerState(NextState.MORE_VALUES);
 		done = !scanner.next(
 				cells,
 				scannerContext);

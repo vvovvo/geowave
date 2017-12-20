@@ -13,12 +13,12 @@ public interface RowScanner
 
 	public List<Cell> nextCellsInRow()
 			throws IOException;
-	
+
 	public boolean isDone();
-	
+
 	public List<Cell> currentCellsInRow();
-	
+
 	public Scan getScan();
-	
-	public Map<String,Object> getHints();
+
+	public Map<String, Object> getHints();
 }

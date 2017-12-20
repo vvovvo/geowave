@@ -30,8 +30,7 @@ public class ServerOpInternalScannerWrapper implements
 			final RowScanner rowScanner )
 			throws IOException {
 		for (final HBaseServerOp serverOp : orderedServerOps) {
-			if (!serverOp.nextRow(
-					rowScanner)) {
+			if (!serverOp.nextRow(rowScanner)) {
 				return false;
 			}
 		}
@@ -41,32 +40,28 @@ public class ServerOpInternalScannerWrapper implements
 	protected boolean internalNextRow(
 			final List<Cell> rowCells )
 			throws IOException {
-		return internalNextRow(
-				new BasicRowScanner(
-						rowCells,
-						scan));
+		return internalNextRow(new BasicRowScanner(
+				rowCells,
+				scan));
 	}
 
 	protected boolean internalNextRow(
 			final List<Cell> rowCells,
 			final ScannerContext scannerContext )
 			throws IOException {
-		return internalNextRow(
-				new ScannerContextRowScanner(
-						delegate,
-						rowCells,
-						scannerContext,
-						scan));
+		return internalNextRow(new ScannerContextRowScanner(
+				delegate,
+				rowCells,
+				scannerContext,
+				scan));
 	}
 
 	@Override
 	public boolean next(
 			final List<Cell> rowCells )
 			throws IOException {
-		final boolean retVal = delegate.next(
-				rowCells);
-		if (!internalNextRow(
-				rowCells)) {
+		final boolean retVal = delegate.next(rowCells);
+		if (!internalNextRow(rowCells)) {
 			return false;
 		}
 		return retVal;

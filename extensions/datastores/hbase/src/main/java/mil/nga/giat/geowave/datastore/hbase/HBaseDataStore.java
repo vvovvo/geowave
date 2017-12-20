@@ -38,8 +38,7 @@ import mil.nga.giat.geowave.mapreduce.BaseMapReduceDataStore;
 public class HBaseDataStore extends
 		BaseMapReduceDataStore
 {
-	private final static Logger LOGGER = LoggerFactory.getLogger(
-			HBaseDataStore.class);
+	private final static Logger LOGGER = LoggerFactory.getLogger(HBaseDataStore.class);
 
 	private final HBaseSplitsProvider splitsProvider = new HBaseSplitsProvider();
 	private final HBaseOperations hbaseOperations;
@@ -84,8 +83,7 @@ public class HBaseDataStore extends
 				operations,
 				options);
 
-		secondaryIndexDataStore.setDataStore(
-				this);
+		secondaryIndexDataStore.setDataStore(this);
 
 		hbaseOperations = operations;
 	}
@@ -99,16 +97,15 @@ public class HBaseDataStore extends
 		if (adapter instanceof RowMergingDataAdapter) {
 			if (!DataAdapterAndIndexCache.getInstance(
 					RowMergingAdapterOptionProvider.ROW_MERGING_ADAPTER_CACHE_ID).add(
-							adapter.getAdapterId(),
-							indexName)) {
+					adapter.getAdapterId(),
+					indexName)) {
 				if (baseOptions.isCreateTable()) {
 					((HBaseOperations) baseOperations).createTable(
 							index.getId(),
 							baseOptions.isServerSideLibraryEnabled(),
 							adapter.getAdapterId());
 				}
-				((HBaseOperations) baseOperations).ensureServerSideOperationsObserverAttached(
-						index.getId());
+				((HBaseOperations) baseOperations).ensureServerSideOperationsObserverAttached(index.getId());
 				ServerOpHelper.addServerSideRowMerging(
 						((RowMergingDataAdapter<?, ?>) adapter),
 						(ServerSideOperations) baseOperations,

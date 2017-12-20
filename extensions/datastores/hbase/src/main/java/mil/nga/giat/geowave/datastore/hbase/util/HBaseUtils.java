@@ -164,21 +164,17 @@ public class HBaseUtils
 
 	public static ImmutableSet<ServerOpScope> stringToScopes(
 			final String value ) {
-		final String[] scopes = value.split(
-				",");
-		return Sets.immutableEnumSet(
-				Iterables.transform(
-						Arrays.asList(
-								scopes),
-						new Function<String, ServerOpScope>() {
+		final String[] scopes = value.split(",");
+		return Sets.immutableEnumSet(Iterables.transform(
+				Arrays.asList(scopes),
+				new Function<String, ServerOpScope>() {
 
-							@Override
-							public ServerOpScope apply(
-									final String input ) {
-								return ServerOpScope.valueOf(
-										input);
-							}
-						}));
+					@Override
+					public ServerOpScope apply(
+							final String input ) {
+						return ServerOpScope.valueOf(input);
+					}
+				}));
 	}
 
 }

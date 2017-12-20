@@ -18,6 +18,8 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nonnull;
+
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchDeleter;
@@ -1534,6 +1536,7 @@ public class AccumuloOperations implements
 
 					@Override
 					public IteratorScope apply(
+							@Nonnull
 							final ServerOpScope scope ) {
 						return toAccumulo(scope);
 					}

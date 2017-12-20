@@ -21,8 +21,7 @@ import mil.nga.giat.geowave.core.store.server.ServerOpConfig.ServerOpScope;
 
 public class ServerSideOperationStore
 {
-	private static final Logger LOGGER = LoggerFactory.getLogger(
-			ServerSideOperationStore.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ServerSideOperationStore.class);
 	private final Map<TableKey, TableOpStore> map = new HashMap<>();
 
 	public ServerSideOperationStore() {
@@ -40,8 +39,7 @@ public class ServerSideOperationStore
 		final TableKey key = new TableKey(
 				namespace,
 				qualifier);
-		TableOpStore tableStore = map.get(
-				key);
+		TableOpStore tableStore = map.get(key);
 		if (tableStore == null) {
 			tableStore = new TableOpStore();
 			map.put(
@@ -60,13 +58,11 @@ public class ServerSideOperationStore
 			final String namespace,
 			final String qualifier,
 			final ServerOpScope scope ) {
-		final TableOpStore tableStore = map.get(
-				new TableKey(
-						namespace,
-						qualifier));
+		final TableOpStore tableStore = map.get(new TableKey(
+				namespace,
+				qualifier));
 		if (tableStore != null) {
-			return tableStore.getOperations(
-					scope);
+			return tableStore.getOperations(scope);
 		}
 		return Collections.emptyList();
 	}
@@ -100,8 +96,7 @@ public class ServerSideOperationStore
 								@Override
 								public HBaseServerOp apply(
 										final ServerSideOperationValue input ) {
-									return input.getOperation(
-											scope);
+									return input.getOperation(scope);
 								}
 							}),
 					Predicates.notNull());
@@ -127,8 +122,7 @@ public class ServerSideOperationStore
 
 		private HBaseServerOp getOperation(
 				final ServerOpScope scope ) {
-			if (!scopes.contains(
-					scope)) {
+			if (!scopes.contains(scope)) {
 				return null;
 			}
 			// defer instantiation of the filter until its required
@@ -144,8 +138,7 @@ public class ServerSideOperationStore
 					HBaseServerOp.class);
 			if (op != null) {
 				try {
-					op.init(
-							options);
+					op.init(options);
 				}
 				catch (final IOException e) {
 					LOGGER.warn(
@@ -197,8 +190,7 @@ public class ServerSideOperationStore
 					return false;
 				}
 			}
-			else if (!opName.equals(
-					other.opName)) {
+			else if (!opName.equals(other.opName)) {
 				return false;
 			}
 			if (priority != other.priority) {
@@ -214,8 +206,7 @@ public class ServerSideOperationStore
 					priority,
 					o.priority);
 			if (retVal == 0) {
-				retVal = opName.compareTo(
-						o.opName);
+				retVal = opName.compareTo(o.opName);
 			}
 			return retVal;
 		}
@@ -260,8 +251,7 @@ public class ServerSideOperationStore
 					return false;
 				}
 			}
-			else if (!namespace.equals(
-					other.namespace)) {
+			else if (!namespace.equals(other.namespace)) {
 				return false;
 			}
 			if (qualifier == null) {
@@ -269,8 +259,7 @@ public class ServerSideOperationStore
 					return false;
 				}
 			}
-			else if (!qualifier.equals(
-					other.qualifier)) {
+			else if (!qualifier.equals(other.qualifier)) {
 				return false;
 			}
 			return true;

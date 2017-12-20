@@ -39,8 +39,7 @@ public class ServerOpRegionScannerWrapper extends
 	public boolean reseek(
 			final byte[] row )
 			throws IOException {
-		return ((RegionScanner) delegate).reseek(
-				row);
+		return ((RegionScanner) delegate).reseek(row);
 	}
 
 	@Override
@@ -62,10 +61,8 @@ public class ServerOpRegionScannerWrapper extends
 	public boolean nextRaw(
 			final List<Cell> rowCells )
 			throws IOException {
-		final boolean retVal = ((RegionScanner) delegate).nextRaw(
-				rowCells);
-		if (!internalNextRow(
-				rowCells)) {
+		final boolean retVal = ((RegionScanner) delegate).nextRaw(rowCells);
+		if (!internalNextRow(rowCells)) {
 			return false;
 		}
 		return retVal;

@@ -48,8 +48,7 @@ class ServerSideOperationKey implements
 				return false;
 			}
 		}
-		else if (!namespace.equals(
-				other.namespace)) {
+		else if (!namespace.equals(other.namespace)) {
 			return false;
 		}
 		if (opName == null) {
@@ -57,8 +56,7 @@ class ServerSideOperationKey implements
 				return false;
 			}
 		}
-		else if (!opName.equals(
-				other.opName)) {
+		else if (!opName.equals(other.opName)) {
 			return false;
 		}
 		if (priority != other.priority) {
@@ -69,8 +67,7 @@ class ServerSideOperationKey implements
 				return false;
 			}
 		}
-		else if (!qualifier.equals(
-				other.qualifier)) {
+		else if (!qualifier.equals(other.qualifier)) {
 			return false;
 		}
 		return true;
@@ -83,14 +80,11 @@ class ServerSideOperationKey implements
 				priority,
 				o.priority);
 		if (retVal == 0) {
-			retVal = namespace.compareTo(
-					o.namespace);
+			retVal = namespace.compareTo(o.namespace);
 			if (retVal == 0) {
-				retVal = qualifier.compareTo(
-						o.qualifier);
+				retVal = qualifier.compareTo(o.qualifier);
 				if (retVal == 0) {
-					retVal = opName.compareTo(
-							o.opName);
+					retVal = opName.compareTo(o.opName);
 				}
 			}
 		}

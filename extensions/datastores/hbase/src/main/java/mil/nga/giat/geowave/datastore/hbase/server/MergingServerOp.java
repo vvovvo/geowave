@@ -43,8 +43,7 @@ public class MergingServerOp implements
 
 	protected byte[] getBinary(
 			final Mergeable mergeable ) {
-		return PersistenceUtils.toBinary(
-				mergeable);
+		return PersistenceUtils.toBinary(mergeable);
 	}
 
 	@Override
@@ -85,17 +84,14 @@ public class MergingServerOp implements
 					while (iter.hasNext()) {
 						final Cell cell = iter.next();
 						// TODO consider avoiding extra byte array allocations
-						final byte[] familyBytes = CellUtil.cloneFamily(
-								cell);
+						final byte[] familyBytes = CellUtil.cloneFamily(cell);
 						final ByteArrayId adapterId = new ByteArrayId(
 								familyBytes);
-						if (adapterIds.contains(
-								adapterId)) {
+						if (adapterIds.contains(adapterId)) {
 							final PartialCellEquality key = new PartialCellEquality(
 									cell,
 									includeTags());
-							List<Cell> cells = merges.get(
-									key);
+							List<Cell> cells = merges.get(key);
 							if (cells == null) {
 								cells = new ArrayList<>();
 								merges.put(
@@ -108,8 +104,7 @@ public class MergingServerOp implements
 								// same vis, so merging will need to take place
 								rebuildList = true;
 							}
-							cells.add(
-									cell);
+							cells.add(cell);
 						}
 						else {
 							// always include tags for non-merge cells so that
@@ -120,8 +115,7 @@ public class MergingServerOp implements
 							// get max versions and trim these cells to max
 							// versions
 							// per column family and qualifier, and tags
-							List<Cell> cells = nonMerges.get(
-									key);
+							List<Cell> cells = nonMerges.get(key);
 							if (cells == null) {
 								cells = new ArrayList<>();
 								nonMerges.put(
@@ -131,34 +125,27 @@ public class MergingServerOp implements
 							else if ((maxVersions != null) && (cells.size() >= maxVersions)) {
 								rebuildList = true;
 							}
-							cells.add(
-									cell);
+							cells.add(cell);
 						}
 					}
 					if (rebuildList) {
 						rowCells.clear();
 						for (final List<Cell> cells : merges.values()) {
 							if (cells.size() > 1) {
-								rowCells.add(
-										mergeList(
-												cells));
+								rowCells.add(mergeList(cells));
 							}
 							else if (cells.size() == 1) {
-								rowCells.add(
-										cells.get(
-												0));
+								rowCells.add(cells.get(0));
 							}
 						}
 						for (final List<Cell> cells : nonMerges.values()) {
 							if ((maxVersions != null) && (cells.size() > maxVersions)) {
-								rowCells.addAll(
-										cells.subList(
-												0,
-												maxVersions));
+								rowCells.addAll(cells.subList(
+										0,
+										maxVersions));
 							}
 							else {
-								rowCells.addAll(
-										cells);
+								rowCells.addAll(cells);
 							}
 						}
 					}
@@ -177,8 +164,7 @@ public class MergingServerOp implements
 			final List<Cell> cells ) {
 		synchronized (MUTEX) {
 			Mergeable currentMergeable = null;
-			final Cell firstCell = cells.get(
-					0);
+			final Cell firstCell = cells.get(0);
 			for (final Cell cell : cells) {
 				final Mergeable mergeable = getMergeable(
 						cell,
@@ -186,20 +172,17 @@ public class MergingServerOp implements
 						// allocations (which would require
 						// persistence utils to be able to use
 						// bytebuffer instead of byte[])
-						CellUtil.cloneValue(
-								cell));
+						CellUtil.cloneValue(cell));
 				if (mergeable != null) {
 					if (currentMergeable == null) {
 						currentMergeable = mergeable;
 					}
 					else {
-						currentMergeable.merge(
-								mergeable);
+						currentMergeable.merge(mergeable);
 					}
 				}
 			}
-			final byte[] valueBinary = getBinary(
-					currentMergeable);
+			final byte[] valueBinary = getBinary(currentMergeable);
 			// this is basically a lengthy verbose form of cloning
 			// in-place (without allocating new byte arrays) and
 			// simply replacing the value with the new mergeable
@@ -215,8 +198,7 @@ public class MergingServerOp implements
 					firstCell.getQualifierOffset(),
 					firstCell.getQualifierLength(),
 					firstCell.getTimestamp(),
-					Type.codeToType(
-							firstCell.getTypeByte()),
+					Type.codeToType(firstCell.getTypeByte()),
 					valueBinary,
 					0,
 					valueBinary.length,
@@ -230,27 +212,25 @@ public class MergingServerOp implements
 	public void init(
 			final Map<String, String> options )
 			throws IOException {
-		final String adapterIdsStr = options.get(
-				RowMergingAdapterOptionProvider.ADAPTER_IDS_OPTION);
+		final String adapterIdsStr = options.get(RowMergingAdapterOptionProvider.ADAPTER_IDS_OPTION);
 
 		if (adapterIdsStr.length() == 0) {
 			throw new IllegalArgumentException(
 					"The " + RowMergingAdapterOptionProvider.ADAPTER_IDS_OPTION + " must not be empty");
 		}
-		adapterIds = Sets.newHashSet(
-				Iterables.transform(
-						Splitter.on(
-								",").split(
-										adapterIdsStr),
-						new Function<String, ByteArrayId>() {
+		adapterIds = Sets.newHashSet(Iterables.transform(
+				Splitter.on(
+						",").split(
+						adapterIdsStr),
+				new Function<String, ByteArrayId>() {
 
-							@Override
-							public ByteArrayId apply(
-									final String input ) {
-								return new ByteArrayId(
-										input);
-							}
-						}));
+					@Override
+					public ByteArrayId apply(
+							final String input ) {
+						return new ByteArrayId(
+								input);
+					}
+				}));
 	}
 
 	@Override
@@ -260,12 +240,9 @@ public class MergingServerOp implements
 		if ((maxVersions > 0) && (maxVersions < Integer.MAX_VALUE)) {
 			scan.setAttribute(
 					OLD_MAX_VERSIONS_KEY,
-					ByteBuffer
-							.allocate(
-									4)
-							.putInt(
-									maxVersions)
-							.array());
+					ByteBuffer.allocate(
+							4).putInt(
+							maxVersions).array());
 
 		}
 		scan.setMaxVersions();

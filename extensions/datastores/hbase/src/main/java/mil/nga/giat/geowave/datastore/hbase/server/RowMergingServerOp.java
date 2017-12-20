@@ -24,36 +24,29 @@ public class RowMergingServerOp extends
 			final byte[] bytes ) {
 		return rowTransform.getRowAsMergeableObject(
 				new ByteArrayId(
-						CellUtil.cloneFamily(
-								cell)),
+						CellUtil.cloneFamily(cell)),
 				new ByteArrayId(
-						CellUtil.cloneQualifier(
-								cell)),
+						CellUtil.cloneQualifier(cell)),
 				bytes);
 	}
 
 	@Override
 	protected byte[] getBinary(
 			final Mergeable mergeable ) {
-		return rowTransform.getBinaryFromMergedObject(
-				mergeable);
+		return rowTransform.getBinaryFromMergedObject(mergeable);
 	}
 
 	@Override
 	public void init(
 			final Map<String, String> options )
 			throws IOException {
-		super.init(
-				options);
-		final String rowTransformStr = options.get(
-				RowMergingAdapterOptionProvider.ROW_TRANSFORM_KEY);
-		final byte[] rowTransformBytes = ByteArrayUtils.byteArrayFromString(
-				rowTransformStr);
+		super.init(options);
+		final String rowTransformStr = options.get(RowMergingAdapterOptionProvider.ROW_TRANSFORM_KEY);
+		final byte[] rowTransformBytes = ByteArrayUtils.byteArrayFromString(rowTransformStr);
 		rowTransform = PersistenceUtils.fromBinary(
 				rowTransformBytes,
 				RowTransform.class);
-		rowTransform.initOptions(
-				options);
+		rowTransform.initOptions(options);
 	}
 
 }

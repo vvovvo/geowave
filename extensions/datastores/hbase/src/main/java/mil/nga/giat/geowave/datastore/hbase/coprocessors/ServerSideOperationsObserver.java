@@ -35,8 +35,7 @@ import mil.nga.giat.geowave.datastore.hbase.util.HBaseUtils;
 public class ServerSideOperationsObserver extends
 		BaseRegionObserver
 {
-	private final static Logger LOGGER = Logger.getLogger(
-			ServerSideOperationsObserver.class);
+	private final static Logger LOGGER = Logger.getLogger(ServerSideOperationsObserver.class);
 	public static final String SERVER_OP_PREFIX = "serverop";
 	public static final String SERVER_OP_SCOPES_KEY = "scopes";
 	public static final String SERVER_OP_OPTIONS_PREFIX = "options";
@@ -156,8 +155,7 @@ public class ServerSideOperationsObserver extends
 						qualifier,
 						ServerOpScope.SCAN);
 				for (final HBaseServerOp op : serverOps) {
-					op.preScannerOpen(
-							scan);
+					op.preScannerOpen(scan);
 				}
 			}
 		}
@@ -232,8 +230,7 @@ public class ServerSideOperationsObserver extends
 					final String uniqueOp = key.substring(
 							0,
 							index + 1);
-					List<String> optionKeys = uniqueOpsWithOptionKeys.get(
-							uniqueOp);
+					List<String> optionKeys = uniqueOpsWithOptionKeys.get(uniqueOp);
 					if (optionKeys == null) {
 						optionKeys = new ArrayList<>();
 						uniqueOpsWithOptionKeys.put(
@@ -244,10 +241,8 @@ public class ServerSideOperationsObserver extends
 						if (key.substring(
 								uniqueOp.length(),
 								uniqueOp.length() + SERVER_OP_OPTIONS_PREFIX_LENGTH).equals(
-										SERVER_OP_OPTIONS_PREFIX)) {
-							optionKeys.add(
-									key.substring(
-											uniqueOp.length() + 1 + SERVER_OP_OPTIONS_PREFIX_LENGTH));
+								SERVER_OP_OPTIONS_PREFIX)) {
+							optionKeys.add(key.substring(uniqueOp.length() + 1 + SERVER_OP_OPTIONS_PREFIX_LENGTH));
 						}
 					}
 				}
@@ -256,42 +251,32 @@ public class ServerSideOperationsObserver extends
 
 		for (final Entry<String, List<String>> uniqueOpAndOptions : uniqueOpsWithOptionKeys.entrySet()) {
 			final String uniqueOp = uniqueOpAndOptions.getKey();
-			final String priorityStr = config.get(
-					uniqueOp + SERVER_OP_PRIORITY_KEY);
+			final String priorityStr = config.get(uniqueOp + SERVER_OP_PRIORITY_KEY);
 			if ((priorityStr == null) || priorityStr.isEmpty()) {
-				LOGGER.warn(
-						"Skipping server op - unable to find priority for '" + uniqueOp + "'");
+				LOGGER.warn("Skipping server op - unable to find priority for '" + uniqueOp + "'");
 				continue;
 			}
-			final int priority = Integer.parseInt(
-					priorityStr);
-			final String commaDelimitedScopes = config.get(
-					uniqueOp + SERVER_OP_SCOPES_KEY);
+			final int priority = Integer.parseInt(priorityStr);
+			final String commaDelimitedScopes = config.get(uniqueOp + SERVER_OP_SCOPES_KEY);
 			if ((commaDelimitedScopes == null) || commaDelimitedScopes.isEmpty()) {
-				LOGGER.warn(
-						"Skipping server op - unable to find scopes for '" + uniqueOp + "'");
+				LOGGER.warn("Skipping server op - unable to find scopes for '" + uniqueOp + "'");
 				continue;
 			}
-			final ImmutableSet<ServerOpScope> scopes = HBaseUtils.stringToScopes(
-					commaDelimitedScopes);
-			final String className = config.get(
-					uniqueOp + SERVER_OP_CLASS_KEY);
+			final ImmutableSet<ServerOpScope> scopes = HBaseUtils.stringToScopes(commaDelimitedScopes);
+			final String className = config.get(uniqueOp + SERVER_OP_CLASS_KEY);
 			if ((className == null) || className.isEmpty()) {
-				LOGGER.warn(
-						"Skipping server op - unable to find priority for '" + uniqueOp + "'");
+				LOGGER.warn("Skipping server op - unable to find priority for '" + uniqueOp + "'");
 				continue;
 			}
 			final List<String> optionKeys = uniqueOpAndOptions.getValue();
 			final Map<String, String> optionsMap = new HashMap<>();
 			for (final String optionKey : optionKeys) {
-				final String optionValue = config.get(
-						uniqueOp + SERVER_OP_OPTIONS_PREFIX + "." + optionKey);
+				final String optionValue = config.get(uniqueOp + SERVER_OP_OPTIONS_PREFIX + "." + optionKey);
 				optionsMap.put(
 						optionKey,
 						optionValue);
 			}
-			final String[] uniqueOpSplit = uniqueOp.split(
-					"\\.");
+			final String[] uniqueOpSplit = uniqueOp.split("\\.");
 			opStore.addOperation(
 					uniqueOpSplit[1],
 					uniqueOpSplit[2],
@@ -301,7 +286,6 @@ public class ServerSideOperationsObserver extends
 					className,
 					optionsMap);
 		}
-		super.start(
-				e);
+		super.start(e);
 	}
 }

@@ -54,7 +54,8 @@ public class HBaseMetadataWriter implements
 		// batches and if the same row exists within a batch we will not
 		// retain multiple versions)
 		final Put put = new Put(
-				metadata.getPrimaryId(), System.currentTimeMillis());
+				metadata.getPrimaryId(),
+				System.currentTimeMillis());
 
 		byte[] secondaryBytes = metadata.getSecondaryId() != null ? metadata.getSecondaryId() : new byte[0];
 

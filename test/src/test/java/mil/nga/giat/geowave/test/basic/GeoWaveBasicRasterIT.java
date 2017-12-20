@@ -64,8 +64,7 @@ public class GeoWaveBasicRasterIT extends
 	})
 	protected DataStorePluginOptions dataStoreOptions;
 
-	private final static Logger LOGGER = LoggerFactory.getLogger(
-			GeoWaveBasicRasterIT.class);
+	private final static Logger LOGGER = LoggerFactory.getLogger(GeoWaveBasicRasterIT.class);
 	private static long startMillis;
 
 	@Override
@@ -76,32 +75,23 @@ public class GeoWaveBasicRasterIT extends
 	@BeforeClass
 	public static void startTimer() {
 		startMillis = System.currentTimeMillis();
-		LOGGER.warn(
-				"-----------------------------------------");
-		LOGGER.warn(
-				"*                                       *");
-		LOGGER.warn(
-				"*    RUNNING GeoWaveBasicRasterIT       *");
-		LOGGER.warn(
-				"*                                       *");
-		LOGGER.warn(
-				"-----------------------------------------");
+		LOGGER.warn("-----------------------------------------");
+		LOGGER.warn("*                                       *");
+		LOGGER.warn("*    RUNNING GeoWaveBasicRasterIT       *");
+		LOGGER.warn("*                                       *");
+		LOGGER.warn("-----------------------------------------");
 	}
 
 	@AfterClass
 	public static void reportTest() {
-		LOGGER.warn(
-				"-----------------------------------------");
-		LOGGER.warn(
-				"*                                       *");
-		LOGGER.warn(
-				"*      FINISHED GeoWaveBasicRasterIT         *");
-		LOGGER.warn(
-				"*         " + ((System.currentTimeMillis() - startMillis) / 1000) + "s elapsed.                 *");
-		LOGGER.warn(
-				"*                                       *");
-		LOGGER.warn(
-				"-----------------------------------------");
+		LOGGER.warn("-----------------------------------------");
+		LOGGER.warn("*                                       *");
+		LOGGER.warn("*      FINISHED GeoWaveBasicRasterIT         *");
+		LOGGER
+				.warn("*         " + ((System.currentTimeMillis() - startMillis) / 1000)
+						+ "s elapsed.                 *");
+		LOGGER.warn("*                                       *");
+		LOGGER.warn("-----------------------------------------");
 	}
 
 	// @Test
@@ -122,8 +112,7 @@ public class GeoWaveBasicRasterIT extends
 				eastLon,
 				southLat,
 				northLat);
-		TestUtils.deleteAll(
-				dataStoreOptions);
+		TestUtils.deleteAll(dataStoreOptions);
 	}
 
 	@Test
@@ -195,8 +184,7 @@ public class GeoWaveBasicRasterIT extends
 				sumAndAveragingNumBands,
 				sumAndAveragingNumRasters,
 				new SumAndAveragingExpectedValue());
-		TestUtils.deleteAll(
-				dataStoreOptions);
+		TestUtils.deleteAll(dataStoreOptions);
 	}
 
 	private void ingestAndQueryNoDataMergeStrategy(
@@ -311,8 +299,7 @@ public class GeoWaveBasicRasterIT extends
 			}
 
 			// there should be exactly one
-			Assert.assertFalse(
-					it.hasNext());
+			Assert.assertFalse(it.hasNext());
 		}
 	}
 
@@ -502,22 +489,20 @@ public class GeoWaveBasicRasterIT extends
 		try (IndexWriter writer = dataStore.createWriter(
 				adapter,
 				TestUtils.DEFAULT_SPATIAL_INDEX)) {
-			writer.write(
-					RasterUtils.createCoverageTypeDouble(
-							coverageName,
-							westLon,
-							eastLon,
-							southLat,
-							northLat,
-							raster1));
-			writer.write(
-					RasterUtils.createCoverageTypeDouble(
-							coverageName,
-							westLon,
-							eastLon,
-							southLat,
-							northLat,
-							raster2));
+			writer.write(RasterUtils.createCoverageTypeDouble(
+					coverageName,
+					westLon,
+					eastLon,
+					southLat,
+					northLat,
+					raster1));
+			writer.write(RasterUtils.createCoverageTypeDouble(
+					coverageName,
+					westLon,
+					eastLon,
+					southLat,
+					northLat,
+					raster2));
 		}
 	}
 
@@ -570,14 +555,13 @@ public class GeoWaveBasicRasterIT extends
 						}
 					}
 				}
-				writer.write(
-						RasterUtils.createCoverageTypeDouble(
-								coverageName,
-								westLon,
-								eastLon,
-								southLat,
-								northLat,
-								raster));
+				writer.write(RasterUtils.createCoverageTypeDouble(
+						coverageName,
+						westLon,
+						eastLon,
+						southLat,
+						northLat,
+						raster));
 			}
 		}
 	}
@@ -648,12 +632,11 @@ public class GeoWaveBasicRasterIT extends
 								coverageName),
 						null),
 				new IndexOnlySpatialQuery(
-						new GeometryFactory().toGeometry(
-								new Envelope(
-										westLon,
-										eastLon,
-										southLat,
-										northLat))))) {
+						new GeometryFactory().toGeometry(new Envelope(
+								westLon,
+								eastLon,
+								southLat,
+								northLat))))) {
 			// the expected outcome is:
 			// band 1,2,3,4,5,6 has every value set correctly, band 0 has every
 			// even row set correctly and every odd row should be NaN, and band
@@ -689,8 +672,7 @@ public class GeoWaveBasicRasterIT extends
 			}
 
 			// there should be exactly one
-			Assert.assertFalse(
-					it.hasNext());
+			Assert.assertFalse(it.hasNext());
 		}
 	}
 
@@ -842,9 +824,8 @@ public class GeoWaveBasicRasterIT extends
 						}
 					}
 				}
-				thisTile.setMetadata(
-						new MergeCounter(
-								newNumMerges));
+				thisTile.setMetadata(new MergeCounter(
+						newNumMerges));
 			}
 		}
 
@@ -885,18 +866,15 @@ public class GeoWaveBasicRasterIT extends
 
 		@Override
 		public byte[] toBinary() {
-			final ByteBuffer buf = ByteBuffer.allocate(
-					12);
-			buf.putInt(
-					mergeCounter);
+			final ByteBuffer buf = ByteBuffer.allocate(12);
+			buf.putInt(mergeCounter);
 			return buf.array();
 		}
 
 		@Override
 		public void fromBinary(
 				final byte[] bytes ) {
-			final ByteBuffer buf = ByteBuffer.wrap(
-					bytes);
+			final ByteBuffer buf = ByteBuffer.wrap(bytes);
 			mergeCounter = buf.getInt();
 		}
 	}

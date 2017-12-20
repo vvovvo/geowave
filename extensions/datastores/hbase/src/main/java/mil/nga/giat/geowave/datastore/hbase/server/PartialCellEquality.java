@@ -53,14 +53,12 @@ public class PartialCellEquality
 		}
 		final PartialCellEquality other = (PartialCellEquality) obj;
 		return CellComparator.equalsFamily(
-						cell,
-						other.cell)
-				&& CellComparator.equalsQualifier(
-						cell,
-						other.cell)
-				&& (!includeTags || tagsEqual(
-						cell,
-						other.cell));
+				cell,
+				other.cell) && CellComparator.equalsQualifier(
+				cell,
+				other.cell) && (!includeTags || tagsEqual(
+				cell,
+				other.cell));
 	}
 
 	protected static boolean tagsEqual(
