@@ -42,8 +42,7 @@ public class ServerOpConfig
 
 	public Map<String, String> getOptions(
 			final Map<String, String> existingOptions ) {
-		return optionProvider.getOptions(
-				existingOptions);
+		return optionProvider.getOptions(existingOptions);
 	}
 
 	public static interface OptionProvider

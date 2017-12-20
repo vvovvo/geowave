@@ -36,42 +36,32 @@ public class RowMergingAdapterOptionProvider implements
 	@Override
 	public Map<String, String> getOptions(
 			final Map<String, String> existingOptions ) {
-		final Map<String, String> newOptions = adapter.getOptions(
-				existingOptions);
+		final Map<String, String> newOptions = adapter.getOptions(existingOptions);
 
 		String nextAdapterIdsValue = adapter.getAdapterId().getString();
 
-		if ((existingOptions != null) && existingOptions.containsKey(
-				ADAPTER_IDS_OPTION)) {
-			final String existingAdapterIds = existingOptions.get(
-					ADAPTER_IDS_OPTION);
+		if ((existingOptions != null) && existingOptions.containsKey(ADAPTER_IDS_OPTION)) {
+			final String existingAdapterIds = existingOptions.get(ADAPTER_IDS_OPTION);
 			final Set<String> nextAdapters = new HashSet<String>();
-			for (final String id : nextAdapterIdsValue.split(
-					",")) {
-				nextAdapters.add(
-						id);
+			for (final String id : nextAdapterIdsValue.split(",")) {
+				nextAdapters.add(id);
 			}
 			final StringBuffer str = new StringBuffer(
 					nextAdapterIdsValue);
-			for (final String id : existingAdapterIds.split(
-					",")) {
-				if (!nextAdapters.contains(
-						id)) {
-					str.append(
-							",");
-					str.append(
-							id);
+			for (final String id : existingAdapterIds.split(",")) {
+				if (!nextAdapters.contains(id)) {
+					str.append(",");
+					str.append(id);
 				}
 			}
 			nextAdapterIdsValue = str.toString();
 		}
-		newOptions.put(ADAPTER_IDS_OPTION,
+		newOptions.put(
+				ADAPTER_IDS_OPTION,
 				nextAdapterIdsValue);
 		newOptions.put(
 				ROW_TRANSFORM_KEY,
-				ByteArrayUtils.byteArrayToString(
-						PersistenceUtils.toBinary(
-								adapter.getTransform())));
+				ByteArrayUtils.byteArrayToString(PersistenceUtils.toBinary(adapter.getTransform())));
 		return newOptions;
 	}
 }

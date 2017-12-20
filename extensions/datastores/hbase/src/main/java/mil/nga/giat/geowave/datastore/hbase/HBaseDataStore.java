@@ -104,6 +104,7 @@ public class HBaseDataStore extends
 				if (baseOptions.isCreateTable()) {
 					((HBaseOperations) baseOperations).createTable(
 							index.getId(),
+							baseOptions.isServerSideLibraryEnabled(),
 							adapter.getAdapterId());
 				}
 				((HBaseOperations) baseOperations).ensureServerSideOperationsObserverAttached(
@@ -119,6 +120,7 @@ public class HBaseDataStore extends
 
 		hbaseOperations.verifyOrAddColumnFamily(
 				columnFamily,
+				baseOptions.isServerSideLibraryEnabled(),
 				indexName);
 	}
 

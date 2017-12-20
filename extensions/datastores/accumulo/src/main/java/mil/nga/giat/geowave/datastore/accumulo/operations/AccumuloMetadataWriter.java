@@ -16,8 +16,7 @@ import mil.nga.giat.geowave.core.store.operations.MetadataWriter;
 public class AccumuloMetadataWriter implements
 		MetadataWriter
 {
-	private static final Logger LOGGER = LoggerFactory.getLogger(
-			AccumuloMetadataWriter.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(AccumuloMetadataWriter.class);
 	private final BatchWriter writer;
 	private final Text metadataTypeName;
 
@@ -25,8 +24,7 @@ public class AccumuloMetadataWriter implements
 			final BatchWriter writer,
 			final MetadataType metadataType ) {
 		this.writer = writer;
-		metadataTypeName = getSafeText(
-				metadataType.name());
+		metadataTypeName = getSafeText(metadataType.name());
 	}
 
 	@Override
@@ -69,8 +67,7 @@ public class AccumuloMetadataWriter implements
 							metadata.getValue()));
 		}
 		try {
-			writer.addMutation(
-					mutation);
+			writer.addMutation(mutation);
 		}
 		catch (final MutationsRejectedException e) {
 			LOGGER.error(

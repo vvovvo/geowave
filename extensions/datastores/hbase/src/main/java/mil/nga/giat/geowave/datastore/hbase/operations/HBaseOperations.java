@@ -20,7 +20,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.Coprocessor;
 import org.apache.hadoop.hbase.HColumnDescriptor;
@@ -57,15 +56,13 @@ import mil.nga.giat.geowave.core.index.PersistenceUtils;
 import mil.nga.giat.geowave.core.index.StringUtils;
 import mil.nga.giat.geowave.core.store.adapter.AdapterIndexMappingStore;
 import mil.nga.giat.geowave.core.store.adapter.AdapterStore;
-import mil.nga.giat.geowave.core.store.adapter.statistics.DataStatistics;
 import mil.nga.giat.geowave.core.store.base.BaseDataStoreUtils;
-import mil.nga.giat.geowave.core.store.entities.GeoWaveMetadata;
 import mil.nga.giat.geowave.core.store.filter.DistributableQueryFilter;
 import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.core.store.metadata.AbstractGeoWavePersistence;
+import mil.nga.giat.geowave.core.store.metadata.DataStatisticsStoreImpl;
 import mil.nga.giat.geowave.core.store.operations.Deleter;
 import mil.nga.giat.geowave.core.store.operations.MetadataDeleter;
-import mil.nga.giat.geowave.core.store.operations.MetadataQuery;
 import mil.nga.giat.geowave.core.store.operations.MetadataReader;
 import mil.nga.giat.geowave.core.store.operations.MetadataType;
 import mil.nga.giat.geowave.core.store.operations.MetadataWriter;
@@ -75,6 +72,8 @@ import mil.nga.giat.geowave.core.store.operations.Writer;
 import mil.nga.giat.geowave.core.store.query.aggregate.Aggregation;
 import mil.nga.giat.geowave.core.store.query.aggregate.CommonIndexAggregation;
 import mil.nga.giat.geowave.core.store.server.ServerOpConfig.ServerOpScope;
+import mil.nga.giat.geowave.core.store.server.BasicOptionProvider;
+import mil.nga.giat.geowave.core.store.server.ServerOpHelper;
 import mil.nga.giat.geowave.core.store.server.ServerSideOperations;
 import mil.nga.giat.geowave.core.store.util.DataStoreUtils;
 import mil.nga.giat.geowave.datastore.hbase.cli.config.HBaseOptions;
@@ -83,6 +82,8 @@ import mil.nga.giat.geowave.datastore.hbase.coprocessors.AggregationEndpoint;
 import mil.nga.giat.geowave.datastore.hbase.coprocessors.ServerSideOperationsObserver;
 import mil.nga.giat.geowave.datastore.hbase.coprocessors.protobuf.AggregationProtos;
 import mil.nga.giat.geowave.datastore.hbase.filters.HBaseNumericIndexStrategyFilter;
+import mil.nga.giat.geowave.datastore.hbase.server.MergingServerOp;
+import mil.nga.giat.geowave.datastore.hbase.server.MergingVisibilityServerOp;
 import mil.nga.giat.geowave.datastore.hbase.util.ConnectionPool;
 import mil.nga.giat.geowave.datastore.hbase.util.HBaseUtils;
 import mil.nga.giat.geowave.mapreduce.MapReduceDataStoreOperations;
@@ -94,7 +95,7 @@ public class HBaseOperations implements
 {
 	private final static Logger LOGGER = LoggerFactory.getLogger(
 			HBaseOperations.class);
-
+	private boolean iteratorsAttached;
 	protected static final String DEFAULT_TABLE_NAMESPACE = "";
 	public static final Object ADMIN_MUTEX = new Object();
 	private static final long SLEEP_INTERVAL = HConstants.DEFAULT_HBASE_SERVER_PAUSE;
@@ -114,11 +115,6 @@ public class HBaseOperations implements
 		MetadataType.STATS.name(),
 		MetadataType.INDEX.name()
 	};
-
-	// KAM NOTE: This can probably be removed since
-	// we do need to wait for async updates to finish
-	// (see waitForUpdate method).
-	private static final boolean ASYNC_WAIT = true;
 
 	public HBaseOperations(
 			final Connection connection,
@@ -158,10 +154,6 @@ public class HBaseOperations implements
 				options.getZookeeper(),
 				options.getGeowaveNamespace(),
 				(HBaseOptions) options.getStoreOptions());
-	}
-
-	public Configuration getConfig() {
-		return conn.getConfiguration();
 	}
 
 	public boolean isSchemaUpdateEnabled() {
@@ -226,11 +218,13 @@ public class HBaseOperations implements
 		if (createTable) {
 			createTable(
 					columnFamilies,
+					options.isServerSideLibraryEnabled(),
 					tableName);
 		}
 
 		verifyOrAddColumnFamilies(
 				columnFamilies,
+				options.isServerSideLibraryEnabled(),
 				tableName);
 
 		return new HBaseWriter(
@@ -242,6 +236,7 @@ public class HBaseOperations implements
 
 	protected void createTable(
 			final String[] columnFamilies,
+			final boolean enableVersioning,
 			final TableName tableName )
 			throws IOException {
 		synchronized (ADMIN_MUTEX) {
@@ -256,12 +251,10 @@ public class HBaseOperations implements
 					for (final String columnFamily : columnFamilies) {
 						final HColumnDescriptor column = new HColumnDescriptor(
 								columnFamily);
-
-						column.setMaxVersions(
-								getMaxVersions(
-										tableName,
-										columnFamily));
-
+						if (!enableVersioning) {
+							column.setMaxVersions(
+									Integer.MAX_VALUE);
+						}
 						desc.addFamily(
 								column);
 
@@ -288,22 +281,9 @@ public class HBaseOperations implements
 		}
 	}
 
-	private int getMaxVersions(
-			final TableName name,
-			final String columnFamily ) {
-		// We want one version of a row, unless it's a statistic
-		// if (name.getNameAsString().contains(
-		// AbstractGeoWavePersistence.METADATA_TABLE)) {
-		// if (columnFamily.equals(MetadataType.STATS.name())) {
-		return HConstants.ALL_VERSIONS;
-		// }
-		// }
-
-		// return 1;
-	}
-
 	public void verifyOrAddColumnFamily(
 			final String columnFamily,
+			final boolean enableVersioning,
 			final String tableNameStr ) {
 		final TableName tableName = getTableName(
 				tableNameStr);
@@ -314,6 +294,7 @@ public class HBaseOperations implements
 		try {
 			verifyOrAddColumnFamilies(
 					columnFamilies,
+					enableVersioning,
 					tableName);
 		}
 		catch (final IOException e) {
@@ -325,6 +306,7 @@ public class HBaseOperations implements
 
 	protected void verifyOrAddColumnFamilies(
 			final String[] columnFamilies,
+			final boolean enableVersioning,
 			final TableName tableName )
 			throws IOException {
 		// Check the cache first and create the update list
@@ -377,10 +359,10 @@ public class HBaseOperations implements
 						for (final String newColumnFamily : newColumnFamilies) {
 							final HColumnDescriptor c = new HColumnDescriptor(
 									newColumnFamily);
-							c.setMaxVersions(
-									getMaxVersions(
-											tableName,
-											newColumnFamily));
+							if (!enableVersioning) {
+								c.setMaxVersions(
+										Integer.MAX_VALUE);
+							}
 							existingTableDescriptor.addFamily(
 									c);
 
@@ -406,19 +388,17 @@ public class HBaseOperations implements
 			final Admin admin,
 			final TableName tableName,
 			final long sleepTimeMs ) {
-		if (ASYNC_WAIT) {
-			try {
-				while (admin.getAlterStatus(
-						tableName).getFirst() > 0) {
-					Thread.sleep(
-							sleepTimeMs);
-				}
+		try {
+			while (admin.getAlterStatus(
+					tableName).getFirst() > 0) {
+				Thread.sleep(
+						sleepTimeMs);
 			}
-			catch (final Exception e) {
-				LOGGER.error(
-						"Error waiting for table update",
-						e);
-			}
+		}
+		catch (final Exception e) {
+			LOGGER.error(
+					"Error waiting for table update",
+					e);
 		}
 	}
 
@@ -733,16 +713,15 @@ public class HBaseOperations implements
 	public void ensureServerSideOperationsObserverAttached(
 			final ByteArrayId indexId ) {
 		// Use the server-side operations observer
-		// if (options.isVerifyCoprocessors()) {
 		verifyCoprocessor(
 				indexId.getString(),
 				ServerSideOperationsObserver.class.getName(),
 				options.getCoprocessorJar());
-		// }
 	}
 
 	public void createTable(
 			final ByteArrayId indexId,
+			final boolean enableVersioning,
 			final ByteArrayId adapterId ) {
 		final TableName tableName = getTableName(
 				indexId.getString());
@@ -752,6 +731,7 @@ public class HBaseOperations implements
 		try {
 			createTable(
 					columnFamilies,
+					enableVersioning,
 					tableName);
 		}
 		catch (final IOException e) {
@@ -774,11 +754,13 @@ public class HBaseOperations implements
 			if (options.isCreateTable()) {
 				createTable(
 						columnFamilies,
+						options.isServerSideLibraryEnabled(),
 						tableName);
 			}
 
 			verifyOrAddColumnFamilies(
 					columnFamilies,
+					options.isServerSideLibraryEnabled(),
 					tableName);
 
 			return new HBaseWriter(
@@ -810,9 +792,32 @@ public class HBaseOperations implements
 			if (options.isCreateTable()) {
 				createTable(
 						METADATA_CFS,
+						options.isServerSideLibraryEnabled(),
 						tableName);
 			}
+			if (MetadataType.STATS.equals(
+					metadataType) && options.isServerSideLibraryEnabled()) {
+				synchronized (this) {
+					if (!iteratorsAttached) {
+						iteratorsAttached = true;
 
+						final Map<String, String> options = new HashMap<String, String>();
+						options.put(
+								DataStatisticsStoreImpl.COLUMN_OPTION,
+								MetadataType.STATS.name());
+						final BasicOptionProvider optionProvider = new BasicOptionProvider(
+								options);
+						ServerOpHelper.addServerSideMerging(
+								this,
+								DataStatisticsStoreImpl.STATISTICS_COMBINER_NAME,
+								DataStatisticsStoreImpl.STATS_COMBINER_PRIORITY,
+								MergingServerOp.class.getName(),
+								MergingVisibilityServerOp.class.getName(),
+								optionProvider,
+								AbstractGeoWavePersistence.METADATA_TABLE);
+					}
+				}
+			}
 			return new HBaseMetadataWriter(
 					this,
 					getBufferedMutator(
@@ -1164,49 +1169,6 @@ public class HBaseOperations implements
 		}
 
 		return regionIdList;
-	}
-
-	/**
-	 * Whenever a stats query returns multiple versions, we combine them and
-	 * rewrite the data
-	 *
-	 * @param query
-	 * @param mergedStats
-	 */
-	public void updateStats(
-			final MetadataQuery query,
-			final DataStatistics mergedStats ) {
-		try (final MetadataDeleter deleter = createMetadataDeleter(
-				MetadataType.STATS)) {
-			if (deleter != null) {
-				deleter.delete(
-						query);
-			}
-		}
-		catch (final Exception e) {
-			LOGGER.warn(
-					"Unable to close metadata deleter",
-					e);
-		}
-
-		try (final MetadataWriter writer = createMetadataWriter(
-				MetadataType.STATS)) {
-			if (writer != null) {
-				final GeoWaveMetadata metadata = new GeoWaveMetadata(
-						query.getPrimaryId(),
-						query.getSecondaryId(),
-						null,
-						PersistenceUtils.toBinary(
-								mergedStats));
-				writer.write(
-						metadata);
-			}
-		}
-		catch (final Exception e) {
-			LOGGER.warn(
-					"Unable to close metadata writer",
-					e);
-		}
 	}
 
 	@Override

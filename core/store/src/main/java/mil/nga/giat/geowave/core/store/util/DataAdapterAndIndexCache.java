@@ -24,8 +24,7 @@ public class DataAdapterAndIndexCache
 
 	public static synchronized DataAdapterAndIndexCache getInstance(
 			final String cacheId ) {
-		DataAdapterAndIndexCache instance = CACHE_MAP.get(
-				cacheId);
+		DataAdapterAndIndexCache instance = CACHE_MAP.get(cacheId);
 		if (instance == null) {
 			instance = new DataAdapterAndIndexCache();
 			CACHE_MAP.put(
@@ -43,17 +42,15 @@ public class DataAdapterAndIndexCache
 	public synchronized boolean add(
 			final ByteArrayId adapterId,
 			final String indexId ) {
-		if (cache.contains(
-				new DataAdapterAndIndex(
-						adapterId,
-						indexId))) {
+		if (cache.contains(new DataAdapterAndIndex(
+				adapterId,
+				indexId))) {
 			return true;
 		}
 		else {
-			cache.add(
-					new DataAdapterAndIndex(
-							adapterId,
-							indexId));
+			cache.add(new DataAdapterAndIndex(
+					adapterId,
+					indexId));
 			return false;
 		}
 	}
@@ -97,8 +94,7 @@ public class DataAdapterAndIndexCache
 					return false;
 				}
 			}
-			else if (!adapterId.equals(
-					other.adapterId)) {
+			else if (!adapterId.equals(other.adapterId)) {
 				return false;
 			}
 			if (indexId == null) {
@@ -106,8 +102,7 @@ public class DataAdapterAndIndexCache
 					return false;
 				}
 			}
-			else if (!indexId.equals(
-					other.indexId)) {
+			else if (!indexId.equals(other.indexId)) {
 				return false;
 			}
 			return true;

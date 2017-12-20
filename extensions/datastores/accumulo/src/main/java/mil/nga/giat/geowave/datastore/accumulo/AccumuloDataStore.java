@@ -57,8 +57,7 @@ import mil.nga.giat.geowave.mapreduce.BaseMapReduceDataStore;
 public class AccumuloDataStore extends
 		BaseMapReduceDataStore
 {
-	private final static Logger LOGGER = LoggerFactory.getLogger(
-			AccumuloDataStore.class);
+	private final static Logger LOGGER = LoggerFactory.getLogger(AccumuloDataStore.class);
 
 	private final AccumuloSplitsProvider splitsProvider = new AccumuloSplitsProvider();
 
@@ -119,8 +118,7 @@ public class AccumuloDataStore extends
 				accumuloOperations,
 				accumuloOptions);
 
-		secondaryIndexDataStore.setDataStore(
-				this);
+		secondaryIndexDataStore.setDataStore(this);
 	}
 
 	@Override
@@ -134,8 +132,8 @@ public class AccumuloDataStore extends
 			if (adapter instanceof RowMergingDataAdapter) {
 				if (!DataAdapterAndIndexCache.getInstance(
 						RowMergingAdapterOptionProvider.ROW_MERGING_ADAPTER_CACHE_ID).add(
-								adapter.getAdapterId(),
-								indexName)) {
+						adapter.getAdapterId(),
+						indexName)) {
 					if (baseOptions.isCreateTable()) {
 						((AccumuloOperations) baseOperations).createTable(
 								indexName,

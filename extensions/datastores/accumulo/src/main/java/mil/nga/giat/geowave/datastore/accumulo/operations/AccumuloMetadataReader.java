@@ -35,8 +35,7 @@ import mil.nga.giat.geowave.datastore.accumulo.util.ScannerClosableWrapper;
 public class AccumuloMetadataReader implements
 		MetadataReader
 {
-	private final static Logger LOGGER = LoggerFactory.getLogger(
-			AccumuloMetadataReader.class);
+	private final static Logger LOGGER = LoggerFactory.getLogger(AccumuloMetadataReader.class);
 	private static final int STATS_MULTI_VISIBILITY_COMBINER_PRIORITY = 15;
 	private final AccumuloOperations operations;
 	private final DataStoreOptions options;
@@ -58,14 +57,6 @@ public class AccumuloMetadataReader implements
 			final BatchScanner scanner = operations.createBatchScanner(
 					AbstractGeoWavePersistence.METADATA_TABLE,
 					query.getAuthorizations());
-
-			final IteratorSetting[] settings = getScanSettings();
-			if ((settings != null) && (settings.length > 0)) {
-				for (final IteratorSetting setting : settings) {
-					scanner.addScanIterator(
-							setting);
-				}
-			}
 			final String columnFamily = metadataType.name();
 			final byte[] columnQualifier = query.getSecondaryId();
 			if (columnFamily != null) {
@@ -77,24 +68,20 @@ public class AccumuloMetadataReader implements
 									columnQualifier));
 				}
 				else {
-					scanner.fetchColumnFamily(
-							new Text(
-									columnFamily));
+					scanner.fetchColumnFamily(new Text(
+							columnFamily));
 				}
 			}
 			final Collection<Range> ranges = new ArrayList<Range>();
 			if (query.hasPrimaryId()) {
-				ranges.add(
-						new Range(
-								new Text(
-										query.getPrimaryId())));
+				ranges.add(new Range(
+						new Text(
+								query.getPrimaryId())));
 			}
 			else {
-				ranges.add(
-						new Range());
+				ranges.add(new Range());
 			}
-			scanner.setRanges(
-					ranges);
+			scanner.setRanges(ranges);
 
 			// For stats w/ no server-side support, need to merge here
 			if ((metadataType == MetadataType.STATS) && !options.isServerSideLibraryEnabled()) {
@@ -110,12 +97,9 @@ public class AccumuloMetadataReader implements
 							row.getValue().get(),
 							DataStatistics.class);
 
-					if (keyMap.containsKey(
-							row.getKey().getRow())) {
-						final DataStatistics mergedStats = mergedDataMap.get(
-								row.getKey().getRow());
-						mergedStats.merge(
-								stats);
+					if (keyMap.containsKey(row.getKey().getRow())) {
+						final DataStatistics mergedStats = mergedDataMap.get(row.getKey().getRow());
+						mergedStats.merge(stats);
 					}
 					else {
 						keyMap.put(
@@ -130,18 +114,14 @@ public class AccumuloMetadataReader implements
 				final List<GeoWaveMetadata> metadataList = new ArrayList();
 				for (final Entry<Text, Key> entry : keyMap.entrySet()) {
 					final Text rowId = entry.getKey();
-					final Key key = keyMap.get(
-							rowId);
-					final DataStatistics mergedStats = mergedDataMap.get(
-							rowId);
+					final Key key = keyMap.get(rowId);
+					final DataStatistics mergedStats = mergedDataMap.get(rowId);
 
-					metadataList.add(
-							new GeoWaveMetadata(
-									key.getRow().getBytes(),
-									key.getColumnQualifier().getBytes(),
-									key.getColumnVisibility().getBytes(),
-									PersistenceUtils.toBinary(
-											mergedStats)));
+					metadataList.add(new GeoWaveMetadata(
+							key.getRow().getBytes(),
+							key.getColumnQualifier().getBytes(),
+							key.getColumnVisibility().getBytes(),
+							PersistenceUtils.toBinary(mergedStats)));
 				}
 
 				return new CloseableIteratorWrapper<>(
@@ -178,20 +158,4 @@ public class AccumuloMetadataReader implements
 				Iterators.emptyIterator());
 	}
 
-	private IteratorSetting[] getScanSettings() {
-		if (MetadataType.STATS.equals(
-				metadataType) && options.isServerSideLibraryEnabled()) {
-			return getStatsScanSettings();
-		}
-		return null;
-	}
-
-	private static IteratorSetting[] getStatsScanSettings() {
-		final IteratorSetting statsMultiVisibilityCombiner = new IteratorSetting(
-				STATS_MULTI_VISIBILITY_COMBINER_PRIORITY,
-				MergingVisibilityCombiner.class);
-		return new IteratorSetting[] {
-			statsMultiVisibilityCombiner
-		};
-	}
 }

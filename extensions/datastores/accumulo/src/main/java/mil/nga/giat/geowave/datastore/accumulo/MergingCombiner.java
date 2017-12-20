@@ -39,8 +39,7 @@ public class MergingCombiner extends
 			throws IOException {
 		options.put(
 				COLUMNS_OPTION,
-				options.get(
-						RowMergingAdapterOptionProvider.ADAPTER_IDS_OPTION));
+				options.get(RowMergingAdapterOptionProvider.ADAPTER_IDS_OPTION));
 		super.init(
 				source,
 				options,
@@ -64,15 +63,13 @@ public class MergingCombiner extends
 					currentMergeable = mergeable;
 				}
 				else {
-					currentMergeable.merge(
-							mergeable);
+					currentMergeable.merge(mergeable);
 				}
 			}
 		}
 		if (currentMergeable != null) {
 			return new Value(
-					getBinary(
-							currentMergeable));
+					getBinary(currentMergeable));
 		}
 		return super.getTopValue();
 	}
@@ -87,7 +84,6 @@ public class MergingCombiner extends
 
 	protected byte[] getBinary(
 			final Mergeable mergeable ) {
-		return PersistenceUtils.toBinary(
-				mergeable);
+		return PersistenceUtils.toBinary(mergeable);
 	}
 }
