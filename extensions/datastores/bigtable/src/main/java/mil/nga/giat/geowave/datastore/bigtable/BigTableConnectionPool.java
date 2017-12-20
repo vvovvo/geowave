@@ -38,8 +38,7 @@ public class BigTableConnectionPool
 			final String instanceId )
 			throws IOException {
 		String key = projectId + "_" + instanceId;
-		Connection connection = connectorCache.get(
-				key);
+		Connection connection = connectorCache.get(key);
 		if (connection == null) {
 			final Configuration config = BigtableConfiguration.configure(
 					projectId,
@@ -49,8 +48,7 @@ public class BigTableConnectionPool
 					HBASE_CONFIGURATION_TIMEOUT,
 					120000);
 
-			connection = BigtableConfiguration.connect(
-					config);
+			connection = BigtableConfiguration.connect(config);
 			connectorCache.put(
 					key,
 					connection);
