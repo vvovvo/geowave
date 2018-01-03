@@ -215,19 +215,6 @@ public class HBaseOperations implements
 			final String[] columnFamilies,
 			final boolean createTable )
 			throws IOException {
-		return createWriter(
-				sTableName,
-				columnFamilies,
-				createTable,
-				null);
-	}
-
-	public HBaseWriter createWriter(
-			final String sTableName,
-			final String[] columnFamilies,
-			final boolean createTable,
-			final Set<ByteArrayId> splits )
-			throws IOException {
 		final TableName tableName = getTableName(sTableName);
 
 		if (createTable) {

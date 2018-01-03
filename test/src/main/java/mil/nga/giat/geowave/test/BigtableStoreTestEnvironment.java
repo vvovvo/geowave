@@ -64,7 +64,7 @@ public class BigtableStoreTestEnvironment extends
 		EnvironmentVariables environmentVariables = new EnvironmentVariables();
 		environmentVariables.set(
 				"BIGTABLE_EMULATOR_HOST",
-				"127.0.0.1:8128");
+				"127.0.0.1:8086");
 
 		if (internalEmulator) {
 			if (emulator == null) {

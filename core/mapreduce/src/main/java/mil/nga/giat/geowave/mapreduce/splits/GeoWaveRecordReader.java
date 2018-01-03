@@ -428,10 +428,10 @@ public class GeoWaveRecordReader<T> extends
 					currentGeoWaveRangeIndexPair.getRange(),
 					currentGeoWaveKey);
 		}
-		return getOverallProgress(
+		return Math.min(1,Math.max(0, getOverallProgress(
 				currentGeoWaveRangeIndexPair.getRange(),
 				currentGeoWaveKey,
-				progress);
+				progress)));
 	}
 
 }

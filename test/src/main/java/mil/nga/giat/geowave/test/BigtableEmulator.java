@@ -40,7 +40,7 @@ public class BigtableEmulator
 	private final static String GCLOUD_URL = "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/";
 	private final static String GCLOUD_TAR = "google-cloud-sdk-136.0.0-linux-x86_64.tar.gz";
 	private final static String GCLOUD_EXE_DIR = "google-cloud-sdk/bin";
-	private static final String HOST_PORT = "127.0.0.1:9000";
+	private static final String HOST_PORT = "127.0.0.1:8086";
 
 	private static final long EMULATOR_SPINUP_DELAY_MS = 60000L;
 

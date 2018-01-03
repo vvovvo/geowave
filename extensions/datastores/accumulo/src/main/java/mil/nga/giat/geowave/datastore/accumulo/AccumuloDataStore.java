@@ -167,6 +167,7 @@ public class AccumuloDataStore extends
 			final DistributableQuery query,
 			final QueryOptions queryOptions,
 			final AdapterStore adapterStore,
+			final AdapterIndexMappingStore aimStore,
 			final DataStatisticsStore statsStore,
 			final IndexStore indexStore,
 			final Integer minSplits,
@@ -180,7 +181,7 @@ public class AccumuloDataStore extends
 				adapterStore,
 				statsStore,
 				indexStore,
-				indexMappingStore,
+				aimStore,
 				minSplits,
 				maxSplits);
 	}

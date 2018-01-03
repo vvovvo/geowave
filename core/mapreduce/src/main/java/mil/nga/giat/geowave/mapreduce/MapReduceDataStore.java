@@ -45,6 +45,7 @@ public interface MapReduceDataStore extends
 			DistributableQuery query,
 			QueryOptions queryOptions,
 			AdapterStore adapterStore,
+			AdapterIndexMappingStore aimStore,
 			DataStatisticsStore statsStore,
 			IndexStore indexStore,
 			Integer minSplits,

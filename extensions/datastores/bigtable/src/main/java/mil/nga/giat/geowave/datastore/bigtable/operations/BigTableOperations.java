@@ -40,8 +40,8 @@ public class BigTableOperations extends
 				options.getHBaseOptions());
 	}
 
-	@Override
-	public ResultScanner getScannedResults(
+	//@Override
+	public ResultScanner getScannedResultsOverride(
 			Scan scanner,
 			String tableName,
 			String... authorizations )

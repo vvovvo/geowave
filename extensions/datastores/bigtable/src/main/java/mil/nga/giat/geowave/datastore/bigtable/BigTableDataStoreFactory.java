@@ -15,6 +15,7 @@ import mil.nga.giat.geowave.core.store.DataStoreFactory;
 import mil.nga.giat.geowave.core.store.StoreFactoryHelper;
 import mil.nga.giat.geowave.core.store.StoreFactoryOptions;
 import mil.nga.giat.geowave.core.store.operations.DataStoreOperations;
+import mil.nga.giat.geowave.datastore.bigtable.mapreduce.BigTableSplitsProvider;
 import mil.nga.giat.geowave.datastore.bigtable.operations.BigTableOperations;
 import mil.nga.giat.geowave.datastore.bigtable.operations.config.BigTableOptions;
 import mil.nga.giat.geowave.datastore.hbase.HBaseDataStore;
@@ -43,6 +44,7 @@ public class BigTableDataStoreFactory extends
 		final DataStoreOperations bigtableOperations = helper.createOperations(options);
 
 		return new HBaseDataStore(
+				new BigTableSplitsProvider(),
 				(BigTableOperations) bigtableOperations,
 				((BigTableOptions) options).getHBaseOptions());
 	}

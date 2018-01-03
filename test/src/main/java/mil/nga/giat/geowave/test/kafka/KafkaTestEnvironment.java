@@ -64,7 +64,7 @@ public class KafkaTestEnvironment implements
 		LOGGER.info("Shutting down Kafka Server...");
 		kafkaServer.shutdown();
 
-		FileUtils.deleteDirectory(KafkaTestUtils.DEFAULT_LOG_DIR);
+		FileUtils.forceDeleteOnExit(KafkaTestUtils.DEFAULT_LOG_DIR);
 	}
 
 	@Override

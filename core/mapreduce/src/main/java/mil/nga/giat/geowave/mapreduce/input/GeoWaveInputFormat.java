@@ -311,6 +311,7 @@ public class GeoWaveInputFormat<T> extends
 					getQuery(context),
 					getQueryOptions(context),
 					getJobContextAdapterStore(context),
+					getJobContextAdapterIndexMappingStore(context),
 					getJobContextDataStatisticsStore(context),
 					getJobContextIndexStore(context),
 					getMinimumSplitCount(context),

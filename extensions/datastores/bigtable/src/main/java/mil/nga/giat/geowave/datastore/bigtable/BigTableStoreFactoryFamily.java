@@ -14,7 +14,7 @@ import mil.nga.giat.geowave.core.store.BaseDataStoreFamily;
 import mil.nga.giat.geowave.core.store.DataStore;
 import mil.nga.giat.geowave.core.store.GenericStoreFactory;
 import mil.nga.giat.geowave.core.store.index.SecondaryIndexDataStore;
-import mil.nga.giat.geowave.datastore.hbase.index.secondary.HBaseSecondaryIndexDataStoreFactory;
+import mil.nga.giat.geowave.datastore.bigtable.index.secondary.BigTableSecondaryIndexDataStoreFactory;
 
 public class BigTableStoreFactoryFamily extends
 		BaseDataStoreFamily
@@ -39,7 +39,7 @@ public class BigTableStoreFactoryFamily extends
 
 	@Override
 	public GenericStoreFactory<SecondaryIndexDataStore> getSecondaryIndexDataStore() {
-		return new HBaseSecondaryIndexDataStoreFactory(
+		return new BigTableSecondaryIndexDataStoreFactory(
 				TYPE,
 				DESCRIPTION,
 				new BigTableFactoryHelper());

@@ -34,10 +34,11 @@ public class HBaseDataStore extends
 {
 	private final static Logger LOGGER = LoggerFactory.getLogger(HBaseDataStore.class);
 
-	private final HBaseSplitsProvider splitsProvider = new HBaseSplitsProvider();
+	private final HBaseSplitsProvider splitsProvider;
 	private final HBaseOperations hbaseOperations;
 
 	public HBaseDataStore(
+			final HBaseSplitsProvider splitsProvider,
 			final HBaseOperations operations,
 			final HBaseOptions options ) {
 		this(
@@ -56,6 +57,7 @@ public class HBaseDataStore extends
 				new HBaseSecondaryIndexDataStore(
 						operations,
 						options),
+				splitsProvider,
 				operations,
 				options);
 	}
@@ -66,6 +68,7 @@ public class HBaseDataStore extends
 			final DataStatisticsStore statisticsStore,
 			final AdapterIndexMappingStore indexMappingStore,
 			final HBaseSecondaryIndexDataStore secondaryIndexDataStore,
+			final HBaseSplitsProvider splitsProvider,
 			final HBaseOperations operations,
 			final HBaseOptions options ) {
 		super(
@@ -80,6 +83,7 @@ public class HBaseDataStore extends
 		secondaryIndexDataStore.setDataStore(this);
 
 		hbaseOperations = operations;
+		this.splitsProvider = splitsProvider;
 	}
 
 	@Override
@@ -98,6 +102,7 @@ public class HBaseDataStore extends
 			final DistributableQuery query,
 			final QueryOptions queryOptions,
 			final AdapterStore adapterStore,
+			final AdapterIndexMappingStore aimStore,
 			final DataStatisticsStore statsStore,
 			final IndexStore indexStore,
 			final Integer minSplits,
@@ -111,7 +116,7 @@ public class HBaseDataStore extends
 				adapterStore,
 				statsStore,
 				indexStore,
-				indexMappingStore,
+				aimStore,
 				minSplits,
 				maxSplits);
 	}
