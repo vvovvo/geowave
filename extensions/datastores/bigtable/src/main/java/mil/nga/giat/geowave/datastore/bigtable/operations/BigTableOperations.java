@@ -15,9 +15,13 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 
+import org.apache.hadoop.hbase.HConstants;
+import org.apache.hadoop.hbase.client.RegionLocator;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Scan;
+
+import com.google.cloud.bigtable.hbase.BigtableRegionLocator;
 
 import mil.nga.giat.geowave.core.index.ByteArrayId;
 import mil.nga.giat.geowave.datastore.bigtable.BigTableConnectionPool;
@@ -40,23 +44,50 @@ public class BigTableOperations extends
 				options.getHBaseOptions());
 	}
 
-	//@Override
-	public ResultScanner getScannedResultsOverride(
+	@Override
+	public RegionLocator getRegionLocator(
+			final String tableName )
+			throws IOException {
+		BigtableRegionLocator regionLocator = (BigtableRegionLocator) super.getRegionLocator(
+				tableName);
+
+		if (regionLocator != null) {
+			// Force region update
+			if (regionLocator.getAllRegionLocations().size() <= 1) {
+				regionLocator.getRegionLocation(
+						HConstants.EMPTY_BYTE_ARRAY,
+						true);
+			}
+		}
+
+		return regionLocator;
+	}
+
+	protected void forceRegionUpdate(
+			BigtableRegionLocator regionLocator ) {
+
+	}
+
+	@Override
+	public ResultScanner getScannedResults(
 			Scan scanner,
 			String tableName,
 			String... authorizations )
 			throws IOException {
 
 		// Check the local cache
-		boolean tableAvailable = tableCache.contains(tableName);
+		boolean tableAvailable = tableCache.contains(
+				tableName);
 
 		// No local cache. Check the server and update cache
 		if (!tableAvailable) {
-			if (indexExists(new ByteArrayId(
-					tableName))) {
+			if (indexExists(
+					new ByteArrayId(
+							tableName))) {
 				tableAvailable = true;
 
-				tableCache.add(tableName);
+				tableCache.add(
+						tableName);
 			}
 		}
 

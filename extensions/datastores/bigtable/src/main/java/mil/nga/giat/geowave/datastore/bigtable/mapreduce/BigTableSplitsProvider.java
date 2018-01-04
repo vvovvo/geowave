@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeSet;
@@ -12,7 +11,6 @@ import java.util.TreeSet;
 import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.HRegionInfo;
 import org.apache.hadoop.hbase.HRegionLocation;
-import org.apache.hadoop.hbase.client.RegionLocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +28,7 @@ import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
 import mil.nga.giat.geowave.core.store.operations.DataStoreOperations;
 import mil.nga.giat.geowave.core.store.query.DistributableQuery;
 import mil.nga.giat.geowave.core.store.util.DataStoreUtils;
+import mil.nga.giat.geowave.datastore.bigtable.operations.BigTableOperations;
 import mil.nga.giat.geowave.datastore.hbase.mapreduce.HBaseSplitsProvider;
 import mil.nga.giat.geowave.datastore.hbase.operations.HBaseOperations;
 import mil.nga.giat.geowave.mapreduce.splits.GeoWaveRowRange;
@@ -57,13 +56,13 @@ public class BigTableSplitsProvider extends
 			final String[] authorizations )
 			throws IOException {
 
-		HBaseOperations hbaseOperations = null;
+		BigTableOperations bigtableOperations = null;
 		if (operations instanceof HBaseOperations) {
-			hbaseOperations = (HBaseOperations) operations;
+			bigtableOperations = (BigTableOperations) operations;
 		}
 		else {
 			LOGGER.error(
-					"BigTableSplitsProvider requires BasicHBaseOperations object.");
+					"BigTableSplitsProvider requires BigTableOperations object.");
 			return splits;
 		}
 
@@ -75,7 +74,7 @@ public class BigTableSplitsProvider extends
 		final NumericIndexStrategy indexStrategy = index.getIndexStrategy();
 		final int partitionKeyLength = indexStrategy.getPartitionKeyLength();
 
-		final String tableName = hbaseOperations.getQualifiedTableName(
+		final String tableName = bigtableOperations.getQualifiedTableName(
 				index.getId().getString());
 
 		// Build list of row ranges from query
@@ -98,7 +97,7 @@ public class BigTableSplitsProvider extends
 		}
 
 		final Map<HRegionLocation, Map<HRegionInfo, List<ByteArrayRange>>> binnedRanges = new HashMap<HRegionLocation, Map<HRegionInfo, List<ByteArrayRange>>>();
-		final BigtableRegionLocator regionLocator = (BigtableRegionLocator) hbaseOperations.getRegionLocator(
+		final BigtableRegionLocator regionLocator = (BigtableRegionLocator) bigtableOperations.getRegionLocator(
 				tableName);
 
 		if (regionLocator == null) {
@@ -106,9 +105,6 @@ public class BigTableSplitsProvider extends
 					"Unable to retrieve RegionLocator for " + tableName);
 			return splits;
 		}
-
-		forceRegionUpdate(
-				regionLocator);
 
 		RowRangeHistogramStatistics<?> stats = getHistStats(
 				index,
@@ -135,8 +131,13 @@ public class BigTableSplitsProvider extends
 
 					prevKey = partitionKey;
 				}
+				
+				ranges.add(new ByteArrayRange(
+							prevKey,
+							new ByteArrayId(
+									HConstants.EMPTY_BYTE_ARRAY)));
 
-				binPartitions(
+				binRanges(
 						ranges,
 						binnedRanges,
 						regionLocator);
@@ -196,69 +197,6 @@ public class BigTableSplitsProvider extends
 			}
 		}
 
-		System.err.println(
-				"Added " + splits.size() + " splits");
-
 		return splits;
-	}
-
-	protected void forceRegionUpdate(
-			BigtableRegionLocator regionLocator ) {
-
-		// Force region update
-		try {
-			if (regionLocator.getAllRegionLocations().size() <= 1) {
-				regionLocator.getRegionLocation(
-						HConstants.EMPTY_BYTE_ARRAY,
-						true);
-
-				System.err.println(
-						"BigtableRegionLocator is reporting " + regionLocator.getAllRegionLocations().size()
-								+ " regions.");
-			}
-		}
-		catch (IOException e) {
-			LOGGER.error(
-					"Error updating Bigtable region info",
-					e);
-		}
-
-	}
-
-	protected static void binPartitions(
-			final List<ByteArrayRange> partitions,
-			final Map<HRegionLocation, Map<HRegionInfo, List<ByteArrayRange>>> binnedRanges,
-			final RegionLocator regionLocator )
-			throws IOException {
-		final ListIterator<ByteArrayRange> i = partitions.listIterator();
-		while (i.hasNext()) {
-			final ByteArrayRange range = i.next();
-			byte[] startKey = range == null ? HConstants.EMPTY_BYTE_ARRAY : range.getStart().getBytes();
-
-			final HRegionLocation location = regionLocator.getRegionLocation(
-					startKey);
-
-			Map<HRegionInfo, List<ByteArrayRange>> regionInfoMap = binnedRanges.get(
-					location);
-			if (regionInfoMap == null) {
-				regionInfoMap = new HashMap<HRegionInfo, List<ByteArrayRange>>();
-				binnedRanges.put(
-						location,
-						regionInfoMap);
-			}
-
-			final HRegionInfo regionInfo = location.getRegionInfo();
-			List<ByteArrayRange> rangeList = regionInfoMap.get(
-					regionInfo);
-			if (rangeList == null) {
-				rangeList = new ArrayList<ByteArrayRange>();
-				regionInfoMap.put(
-						regionInfo,
-						rangeList);
-			}
-
-			rangeList.add(
-					range);
-		}
 	}
 }

@@ -186,9 +186,6 @@ public class HBaseSplitsProvider extends
 			throws IOException {
 
 		List<HRegionLocation> locations = regionLocator.getAllRegionLocations();
-		System.err.println(
-				"RegionLocation has " + locations.size() + " regions");
-		int binnedCount = 0;
 
 		for (HRegionLocation location : locations) {
 			Map<HRegionInfo, List<ByteArrayRange>> regionInfoMap = binnedRanges.get(
@@ -217,11 +214,7 @@ public class HBaseSplitsProvider extends
 							regionInfo.getEndKey()));
 			rangeList.add(
 					regionRange);
-			binnedCount++;
 		}
-
-		System.err.println(
-				"Binned " + binnedCount + " regions");
 	}
 
 	protected static List<ByteArrayRange> binRanges(
@@ -261,9 +254,12 @@ public class HBaseSplitsProvider extends
 						rangeList);
 			}
 
-			if (regionInfo.containsRange(
-					startKey,
-					endKey)) {
+			// Check if region contains range or if it's the last range
+			if (endKey.equals(
+					HConstants.EMPTY_BYTE_ARRAY)
+					|| regionInfo.containsRange(
+							startKey,
+							endKey)) {
 				rangeList.add(
 						range);
 				i.remove();

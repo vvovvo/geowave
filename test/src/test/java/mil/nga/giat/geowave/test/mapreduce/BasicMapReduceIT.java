@@ -164,7 +164,7 @@ public class BasicMapReduceIT extends
 		return dataStorePluginOptions;
 	}
 
-	// @Test
+	@Test
 	public void testIngestAndQueryGeneralGpx()
 			throws Exception {
 		TestUtils.deleteAll(
@@ -271,22 +271,23 @@ public class BasicMapReduceIT extends
 									new EverythingQuery())));
 		}
 
-		// final List<DataAdapter<?>> firstTwoAdapters = new
-		// ArrayList<DataAdapter<?>>();
-		// firstTwoAdapters.add(
-		// adapters[0]);
-		// firstTwoAdapters.add(
-		// adapters[1]);
-		// final ExpectedResults firstTwoAdaptersResults =
-		// TestUtils.getExpectedResults(
-		// geowaveStore.query(
-		// new QueryOptions(
-		// firstTwoAdapters),
-		// new EverythingQuery()));
+		final List<DataAdapter<?>> firstTwoAdapters = new ArrayList<DataAdapter<?>>();
+		firstTwoAdapters.add(
+				adapters[0]);
+		firstTwoAdapters.add(
+				adapters[1]);
+		
+		final ExpectedResults firstTwoAdaptersResults = TestUtils.getExpectedResults(
+				geowaveStore.query(
+						new QueryOptions(
+								firstTwoAdapters),
+						new EverythingQuery()));
+		
 		final ExpectedResults fullDataSetResults = TestUtils.getExpectedResults(
 				geowaveStore.query(
 						new QueryOptions(),
 						new EverythingQuery()));
+		
 		// just for sanity verify its greater than 0 (ie. that data was actually
 		// ingested in the first place)
 		Assert.assertTrue(
@@ -298,28 +299,40 @@ public class BasicMapReduceIT extends
 		testMapReduceExportAndReingest(
 				DimensionalityType.ALL);
 
+		// Try gpxpoint adapter:
+		ByteArrayId gpxPointAdapterId = new ByteArrayId(
+				"gpxpoint");
+
+		for (final WritableDataAdapter<SimpleFeature> adapter : adapters) {
+			if (adapter.getAdapterId().equals(
+					gpxPointAdapterId)) {
+				ExpectedResults expResults = adapterIdToResultsMap.get(
+						adapter.getAdapterId());
+
+				if (expResults.count > 0) {
+					runTestJob(
+							expResults,
+							null,
+							new DataAdapter[] {
+								adapter
+							},
+							null);
+				}
+			}
+		}
+
 		// first try each adapter individually
 		for (final WritableDataAdapter<SimpleFeature> adapter : adapters) {
 			ExpectedResults expResults = adapterIdToResultsMap.get(
 					adapter.getAdapterId());
 
 			if (expResults.count > 0) {
-//				FeatureBoundingBoxStatistics bbox = (FeatureBoundingBoxStatistics) dataStorePluginOptions
-//						.createDataStatisticsStore()
-//						.getDataStatistics(
-//								adapter.getAdapterId(),
-//								FeatureBoundingBoxStatistics.composeId(
-//										((FeatureDataAdapter) adapter)
-//												.getFeatureType()
-//												.getGeometryDescriptor()
-//												.getLocalName()));
-
-				System.err.println(
+				LOGGER.debug(
 						"Running test for adapter " + adapter.getAdapterId());
 
 				runTestJob(
 						expResults,
-						null, // new SpatialQuery(bbox.composeGeometry(null)),
+						null,
 						new DataAdapter[] {
 							adapter
 						},
@@ -329,14 +342,14 @@ public class BasicMapReduceIT extends
 
 		// then try the first 2 adapters, and may as well try with both indices
 		// set (should be the default behavior anyways)
-		// runTestJob(
-		// firstTwoAdaptersResults,
-		// null,
-		// new DataAdapter[] {
-		// adapters[0],
-		// adapters[1]
-		// },
-		// null);
+		runTestJob(
+				firstTwoAdaptersResults,
+				null,
+				new DataAdapter[] {
+					adapters[0],
+					adapters[1]
+				},
+				null);
 
 		// now try all adapters and the spatial temporal index, the result
 		// should be the full data set
@@ -453,17 +466,6 @@ public class BasicMapReduceIT extends
 		MapReduceTestUtils.filterConfiguration(
 				conf);
 		if ((adapters != null) && (adapters.length > 0)) {
-			// for (DataAdapter<?> a : adapters) {
-			// System.err.println(
-			// dataStorePluginOptions.createAdapterStore().adapterExists(
-			// a.getAdapterId()));
-			// AdapterToIndexMapping m =
-			// dataStorePluginOptions.createAdapterIndexMappingStore().getIndicesForAdapter(
-			// a.getAdapterId());
-			// JobContextAdapterIndexMappingStore.addAdapterToIndexMapping(
-			// conf,
-			// m);
-			// }
 			options.setAdapters(
 					Arrays.asList(
 							adapters));

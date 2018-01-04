@@ -714,7 +714,7 @@ public class HBaseOperations implements
 		try {
 			synchronized (partitionCache) {
 				if (existingPartitions == null) {
-					try (RegionLocator regionLocator = conn.getRegionLocator(tableName)) {
+					try (RegionLocator regionLocator = getRegionLocator(tableNameStr)) {
 						existingPartitions = new HashSet<>();
 
 						for (final byte[] startKey : regionLocator.getStartKeys()) {
@@ -739,11 +739,6 @@ public class HBaseOperations implements
 						admin.split(
 								tableName,
 								partition.getBytes());
-
-						// waitForUpdate(
-						// admin,
-						// tableName,
-						// 100L);
 					}
 
 					LOGGER.debug("> Split complete: " + partition.getHexString());
@@ -1256,10 +1251,9 @@ public class HBaseOperations implements
 	public List<ByteArrayId> getTableRegions(
 			final String tableNameStr ) {
 		final ArrayList<ByteArrayId> regionIdList = new ArrayList();
-		final TableName tableName = getTableName(tableNameStr);
 
 		try {
-			final RegionLocator locator = conn.getRegionLocator(tableName);
+			final RegionLocator locator = getRegionLocator(tableNameStr);
 			for (final HRegionLocation regionLocation : locator.getAllRegionLocations()) {
 				regionIdList.add(new ByteArrayId(
 						regionLocation.getRegionInfo().getRegionName()));
