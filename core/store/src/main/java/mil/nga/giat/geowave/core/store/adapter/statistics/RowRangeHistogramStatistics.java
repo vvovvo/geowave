@@ -92,9 +92,10 @@ public class RowRangeHistogramStatistics<T> extends
 	public boolean isSet() {
 		return false;
 	}
-	
+
 	public TreeSet<ByteArrayId> getPartitionKeys() {
-		return new TreeSet<>(histogramPerPartition.keySet());
+		return new TreeSet<>(
+				histogramPerPartition.keySet());
 	}
 
 	private synchronized NumericHistogram getHistogram(

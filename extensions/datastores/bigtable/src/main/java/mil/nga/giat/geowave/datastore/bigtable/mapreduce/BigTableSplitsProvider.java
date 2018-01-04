@@ -39,8 +39,7 @@ import mil.nga.giat.geowave.mapreduce.splits.SplitInfo;
 public class BigTableSplitsProvider extends
 		HBaseSplitsProvider
 {
-	private final static Logger LOGGER = LoggerFactory.getLogger(
-			BigTableSplitsProvider.class);
+	private final static Logger LOGGER = LoggerFactory.getLogger(BigTableSplitsProvider.class);
 
 	@Override
 	protected TreeSet<IntermediateSplitInfo> populateIntermediateSplits(
@@ -61,27 +60,23 @@ public class BigTableSplitsProvider extends
 			bigtableOperations = (BigTableOperations) operations;
 		}
 		else {
-			LOGGER.error(
-					"BigTableSplitsProvider requires BigTableOperations object.");
+			LOGGER.error("BigTableSplitsProvider requires BigTableOperations object.");
 			return splits;
 		}
 
-		if ((query != null) && !query.isSupported(
-				index)) {
+		if ((query != null) && !query.isSupported(index)) {
 			return splits;
 		}
 
 		final NumericIndexStrategy indexStrategy = index.getIndexStrategy();
 		final int partitionKeyLength = indexStrategy.getPartitionKeyLength();
 
-		final String tableName = bigtableOperations.getQualifiedTableName(
-				index.getId().getString());
+		final String tableName = bigtableOperations.getQualifiedTableName(index.getId().getString());
 
 		// Build list of row ranges from query
 		List<ByteArrayRange> ranges = null;
 		if (query != null) {
-			final List<MultiDimensionalNumericData> indexConstraints = query.getIndexConstraints(
-					indexStrategy);
+			final List<MultiDimensionalNumericData> indexConstraints = query.getIndexConstraints(indexStrategy);
 			if ((maxSplits != null) && (maxSplits > 0)) {
 				ranges = DataStoreUtils.constraintsToQueryRanges(
 						indexConstraints,
@@ -97,12 +92,11 @@ public class BigTableSplitsProvider extends
 		}
 
 		final Map<HRegionLocation, Map<HRegionInfo, List<ByteArrayRange>>> binnedRanges = new HashMap<HRegionLocation, Map<HRegionInfo, List<ByteArrayRange>>>();
-		final BigtableRegionLocator regionLocator = (BigtableRegionLocator) bigtableOperations.getRegionLocator(
-				tableName);
+		final BigtableRegionLocator regionLocator = (BigtableRegionLocator) bigtableOperations
+				.getRegionLocator(tableName);
 
 		if (regionLocator == null) {
-			LOGGER.error(
-					"Unable to retrieve RegionLocator for " + tableName);
+			LOGGER.error("Unable to retrieve RegionLocator for " + tableName);
 			return splits;
 		}
 
@@ -126,16 +120,15 @@ public class BigTableSplitsProvider extends
 							prevKey,
 							partitionKey);
 
-					ranges.add(
-							range);
+					ranges.add(range);
 
 					prevKey = partitionKey;
 				}
-				
+
 				ranges.add(new ByteArrayRange(
-							prevKey,
-							new ByteArrayId(
-									HConstants.EMPTY_BYTE_ARRAY)));
+						prevKey,
+						new ByteArrayId(
+								HConstants.EMPTY_BYTE_ARRAY)));
 
 				binRanges(
 						ranges,
@@ -176,11 +169,10 @@ public class BigTableSplitsProvider extends
 							gwRange,
 							index.getIndexStrategy().getPartitionKeyLength());
 
-					rangeList.add(
-							new RangeLocationPair(
-									gwRange,
-									hostname,
-									cardinality < 1 ? 1.0 : cardinality));
+					rangeList.add(new RangeLocationPair(
+							gwRange,
+							hostname,
+							cardinality < 1 ? 1.0 : cardinality));
 				}
 
 				if (!rangeList.isEmpty()) {
@@ -189,10 +181,9 @@ public class BigTableSplitsProvider extends
 							new SplitInfo(
 									index,
 									rangeList));
-					splits.add(
-							new IntermediateSplitInfo(
-									splitInfo,
-									this));
+					splits.add(new IntermediateSplitInfo(
+							splitInfo,
+							this));
 				}
 			}
 		}

@@ -745,7 +745,7 @@ public class HBaseOperations implements
 				}
 			}
 		}
-		catch (final Exception e) {
+		catch (final IOException e) {
 			LOGGER.error("Error accessing region info: " + e.getMessage());
 		}
 	}

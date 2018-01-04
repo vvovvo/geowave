@@ -258,7 +258,8 @@ public abstract class AbstractGeoWavePersistence<T extends Persistable>
 				if (warnIfNotExists) {
 					if (getCombinedId(
 							primaryId,
-							secondaryId).getString().equals("gpxpoint")){
+							secondaryId).getString().equals(
+							"gpxpoint")) {
 						System.err.println("crap");
 					}
 					LOGGER.warn("Object '" + getCombinedId(
